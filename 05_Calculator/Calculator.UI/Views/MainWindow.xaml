@@ -1,0 +1,853 @@
+<Window x:Class="Calculator.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:Calculator.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="Calculator"
+        Height="620" Width="380" MinHeight="520" MinWidth="340"
+        Background="{StaticResource WindowBg}" Foreground="{StaticResource TextPrimary}"
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown">
+
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <!-- MAIN CONTAINER -->
+        <Grid Margin="10,8,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Row 0: Top Header (☰ Standard FSM 🕒) -->
+                <RowDefinition Height="Auto"/> <!-- Row 1: Scientific Options (DEG, F-E) -->
+                <RowDefinition Height="Auto"/> <!-- Row 2: Display Area -->
+                <RowDefinition Height="Auto"/> <!-- Row 3: Memory Bar (MC MR M+ M- MS M⌄) -->
+                <RowDefinition Height="Auto"/> <!-- Row 4: Scientific Dropdowns (Trig, Function) -->
+                <RowDefinition Height="*"/>    <!-- Row 5: Keypad Grid -->
+            </Grid.RowDefinitions>
+
+            <!-- ROW 0: TOP HEADER BAR -->
+            <Grid Grid.Row="0" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Hamburger ☰ -->
+                    <ColumnDefinition Width="Auto"/> <!-- Title "Standard" / "Scientific" -->
+                    <ColumnDefinition Width="*"/>    <!-- Spacer / FSM Status -->
+                    <ColumnDefinition Width="Auto"/> <!-- History 🕒 -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Hamburger Menu Button (Matches Image 1 & 2) -->
+                <Button Grid.Column="0" 
+                        Command="{Binding ToggleNavDrawerCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}"
+                        ToolTip="Open Navigation Menu">
+                    <Viewbox Width="16" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="14">
+                            <Line X1="1" Y1="2" X2="15" Y2="2" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            <Line X1="1" Y1="7" X2="15" Y2="7" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            <Line X1="1" Y1="12" X2="15" Y2="12" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+
+                <!-- Current Mode Title -->
+                <TextBlock Grid.Column="1" 
+                           Text="{Binding ModeTitle}" 
+                           FontSize="20" FontWeight="Bold" 
+                           Foreground="{StaticResource TextPrimary}"
+                           VerticalAlignment="Center" Margin="8,0,8,0"/>
+
+                <!-- FSM State Badge (Model Checking CT287 Feature with #1f5ca9 Theme) -->
+                <Border Grid.Column="2" 
+                        Background="#0F1E36" BorderBrush="#1f5ca9" BorderThickness="1" 
+                        CornerRadius="10" Padding="8,2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StateName}" 
+                               Foreground="{StaticResource TextAccent}" 
+                               FontSize="10" FontWeight="SemiBold" ToolTip="Automaton Finite State"/>
+                </Border>
+
+                <!-- History Button (White Vector Clock Icon) -->
+                <Button Grid.Column="3" 
+                        Command="{Binding ToggleHistoryCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}"
+                        ToolTip="Calculation History">
+                    <Viewbox Width="17" Height="17" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="16">
+                            <Path Data="M8,2 A6,6 0 1,1 3.2,4.8 M3.2,4.8 L3.2,1.8 M3.2,4.8 L6.2,4.8" 
+                                  Stroke="#FFFFFF" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Fill="Transparent"/>
+                            <Path Data="M8,4.5 L8,8 L10.8,9.4" 
+                                  Stroke="#FFFFFF" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+            </Grid>
+
+            <!-- ROW 1: SCIENTIFIC OPTIONS BAR (DEG / RAD & F-E) (Matches Image 3) -->
+            <Grid Grid.Row="1" Margin="2,2,2,4"
+                  Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <!-- DEG / RAD Toggle Button -->
+                    <Button Command="{Binding ToggleAngleCommand}"
+                            Style="{StaticResource HeaderIconButtonStyle}"
+                            Padding="8,3" Margin="0,0,8,0">
+                        <TextBlock Text="{Binding AngleUnitText}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource TextPrimary}"/>
+                    </Button>
+
+                    <!-- F-E Toggle Button -->
+                    <Button Command="{Binding ToggleFECommand}"
+                            Style="{StaticResource HeaderIconButtonStyle}"
+                            Padding="8,3">
+                        <TextBlock Text="F-E" FontWeight="SemiBold" FontSize="12">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsFEActive}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ROW 2: MAIN DISPLAY AREA (Matches Image 1 & 3) -->
+            <Border Grid.Row="2" Background="{StaticResource DisplayBg}" 
+                    BorderBrush="{StaticResource CardBorder}" BorderThickness="1"
+                    CornerRadius="6" Padding="12,6" Margin="0,2,0,4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="22"/>
+                        <RowDefinition Height="54"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Formula / Expression line -->
+                    <TextBlock Grid.Row="0" 
+                               Text="{Binding ExpressionDisplay}" 
+                               Foreground="{StaticResource TextSecondary}" 
+                               FontSize="13.5" HorizontalAlignment="Right" 
+                               TextTrimming="CharacterEllipsis"/>
+
+                    <!-- Main Result / Operand Display -->
+                    <DockPanel Grid.Row="1" LastChildFill="True">
+                        <!-- Open Paren Depth Indicator -->
+                        <TextBlock DockPanel.Dock="Left" 
+                                   Text="{Binding OpenParenBadge}" 
+                                   Foreground="{StaticResource TextAccent}" 
+                                   FontSize="14" FontWeight="Bold"
+                                   VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+
+                        <Viewbox HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                                 Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="52">
+                            <TextBlock Text="{Binding Display}" 
+                                       Foreground="{StaticResource TextPrimary}" 
+                                       FontSize="{Binding DisplayFontSize}" FontWeight="Normal"
+                                       TextAlignment="Right"
+                                       FontFamily="Segoe UI, Segoe UI Variable Display"
+                                       IsHitTestVisible="False"/>
+                        </Viewbox>
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <!-- ROW 3: MEMORY BAR (MC, MR, M+, M-, MS, M⌄) (Matches Image 1 & 3) -->
+            <Grid Grid.Row="3" Margin="0,2,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="MC" Command="{Binding MemoryClearCommand}" IsEnabled="{Binding HasMemory}" Style="{StaticResource MemoryButtonStyle}"/>
+                <Button Grid.Column="1" Content="MR" Command="{Binding MemoryRecallCommand}" IsEnabled="{Binding HasMemory}" Style="{StaticResource MemoryButtonStyle}"/>
+                <Button Grid.Column="2" Content="M+" Command="{Binding MemoryAddCommand}" Style="{StaticResource MemoryButtonStyle}"/>
+                <Button Grid.Column="3" Content="M-" Command="{Binding MemorySubtractCommand}" Style="{StaticResource MemoryButtonStyle}"/>
+                <Button Grid.Column="4" Content="MS" Command="{Binding MemoryStoreCommand}" Style="{StaticResource MemoryButtonStyle}"/>
+                <Button Grid.Column="5" Content="M⌄" Command="{Binding ToggleMemoryDrawerCommand}" IsEnabled="{Binding HasMemory}" Style="{StaticResource MemoryButtonStyle}"/>
+            </Grid>
+
+            <!-- ROW 4: SCIENTIFIC DROPDOWNS BAR (Trigonometry ⌄ & Function ⌄) (Matches Image 3) -->
+            <Grid Grid.Row="4" Margin="0,0,0,4"
+                  Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Trigonometry Dropdown Button -->
+                <Button Grid.Column="0" 
+                        Command="{Binding ToggleTrigFlyoutCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}"
+                        Margin="0,0,10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⊿ " FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                        <TextBlock Text="Trigonometry" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                        <TextBlock Text=" ⌄" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Function Dropdown Button -->
+                <Button Grid.Column="1" 
+                        Command="{Binding ToggleFuncFlyoutCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="𝑓 " FontSize="12" FontStyle="Italic" Foreground="{StaticResource TextSecondary}"/>
+                        <TextBlock Text="Function" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                        <TextBlock Text=" ⌄" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- ROW 5: KEYPAD GRIDS -->
+            <Grid Grid.Row="5">
+
+                <!-- 1. STANDARD KEYPAD (4 COLUMNS x 6 ROWS) (Matches Image 1) -->
+                <Grid Visibility="{Binding IsStandardMode, Converter={StaticResource BoolToVisConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Row 0: %, CE, C, ⌫ -->
+                    <Button Grid.Row="0" Grid.Column="0" Content="%" Command="{Binding ImmediateFunctionCommand}" CommandParameter="percent" Style="{StaticResource OperatorTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="1" Content="CE" Command="{Binding ClearEntryCommand}" Style="{StaticResource ClearTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="2" Content="C" Command="{Binding ClearCommand}" Style="{StaticResource ClearTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="3" Command="{Binding BackspaceCommand}" Style="{StaticResource ClearTileStyle}" ToolTip="Backspace">
+                        <Viewbox Width="18" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="18" Height="14">
+                                <Path Data="M6,1 L17,1 C17.5,1 18,1.5 18,2 L18,12 C18,12.5 17.5,13 17,13 L6,13 L1,7 Z" 
+                                      Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent" StrokeLineJoin="Round"/>
+                                <Line X1="8.5" Y1="4.5" X2="13.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Line X1="13.5" Y1="4.5" X2="8.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Button>
+
+                    <!-- Row 1: 1/x, x², ²√x, ÷ -->
+                    <Button Grid.Row="1" Grid.Column="0" Content="¹/x" Command="{Binding ImmediateFunctionCommand}" CommandParameter="recip" Style="{StaticResource OperatorTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="x²" Command="{Binding ImmediateFunctionCommand}" CommandParameter="sqr" Style="{StaticResource OperatorTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="2" Content="²√x" Command="{Binding ImmediateFunctionCommand}" CommandParameter="sqrt" Style="{StaticResource OperatorTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="3" Content="÷" Command="{Binding OperatorCommand}" CommandParameter="/" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 2: 7, 8, 9, × -->
+                    <Button Grid.Row="2" Grid.Column="0" Content="7" Command="{Binding DigitCommand}" CommandParameter="7" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="1" Content="8" Command="{Binding DigitCommand}" CommandParameter="8" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="2" Content="9" Command="{Binding DigitCommand}" CommandParameter="9" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="3" Content="×" Command="{Binding OperatorCommand}" CommandParameter="*" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 3: 4, 5, 6, − -->
+                    <Button Grid.Row="3" Grid.Column="0" Content="4" Command="{Binding DigitCommand}" CommandParameter="4" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="1" Content="5" Command="{Binding DigitCommand}" CommandParameter="5" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="2" Content="6" Command="{Binding DigitCommand}" CommandParameter="6" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="3" Content="−" Command="{Binding OperatorCommand}" CommandParameter="-" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 4: 1, 2, 3, + -->
+                    <Button Grid.Row="4" Grid.Column="0" Content="1" Command="{Binding DigitCommand}" CommandParameter="1" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="1" Content="2" Command="{Binding DigitCommand}" CommandParameter="2" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="2" Content="3" Command="{Binding DigitCommand}" CommandParameter="3" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="3" Content="+" Command="{Binding OperatorCommand}" CommandParameter="+" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 5: +/-, 0, ., = -->
+                    <Button Grid.Row="5" Grid.Column="0" Content="+/-" Command="{Binding ToggleSignCommand}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="1" Content="0" Command="{Binding DigitCommand}" CommandParameter="0" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="2" Content="." Command="{Binding DecimalPointCommand}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="3" Content="=" Command="{Binding EqualsCommand}" Style="{StaticResource EqualsTileStyle}"/>
+                </Grid>
+
+                <!-- 2. SCIENTIFIC KEYPAD (5 COLUMNS x 7 ROWS) (Matches Image 3) -->
+                <Grid Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Row 0: 2ⁿᵈ, π, e, C, ⌫ -->
+                    <Button Grid.Row="0" Grid.Column="0" Content="2ⁿᵈ" Command="{Binding Toggle2ndCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Background" Value="#0A3331"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource TextAccent}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="1" Content="π" Command="{Binding ConstantCommand}" CommandParameter="π" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="2" Content="e" Command="{Binding ConstantCommand}" CommandParameter="e" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="3" Content="C" Command="{Binding ClearCommand}" Style="{StaticResource ClearTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="4" Command="{Binding BackspaceCommand}" Style="{StaticResource ClearTileStyle}" ToolTip="Backspace">
+                        <Viewbox Width="18" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="18" Height="14">
+                                <Path Data="M6,1 L17,1 C17.5,1 18,1.5 18,2 L18,12 C18,12.5 17.5,13 17,13 L6,13 L1,7 Z" 
+                                      Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent" StrokeLineJoin="Round"/>
+                                <Line X1="8.5" Y1="4.5" X2="13.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Line X1="13.5" Y1="4.5" X2="8.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Button>
+
+                    <!-- Row 1: x² (or x³), ¹/x, |x|, exp, mod -->
+                    <Button Grid.Row="1" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Setter Property="Content" Value="x²"/>
+                                <Setter Property="CommandParameter" Value="sqr"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Content" Value="x³"/>
+                                        <Setter Property="CommandParameter" Value="cube"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="1" Grid.Column="1" Content="¹/x" Command="{Binding ImmediateFunctionCommand}" CommandParameter="recip" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="2" Content="|x|" Command="{Binding ImmediateFunctionCommand}" CommandParameter="abs" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="3" Content="exp" Command="{Binding ImmediateFunctionCommand}" CommandParameter="exp" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="4" Content="mod" Command="{Binding OperatorCommand}" CommandParameter="%" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 2: ²√x (or ∛x), (, ), n!, ÷ -->
+                    <Button Grid.Row="2" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Setter Property="Content" Value="²√x"/>
+                                <Setter Property="CommandParameter" Value="sqrt"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Content" Value="∛x"/>
+                                        <Setter Property="CommandParameter" Value="cbrt"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="2" Grid.Column="1" Content="(" Command="{Binding OpenParenCommand}" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="2" Content=")" Command="{Binding CloseParenCommand}" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="3" Content="n!" Command="{Binding ImmediateFunctionCommand}" CommandParameter="fact" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="4" Content="÷" Command="{Binding OperatorCommand}" CommandParameter="/" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 3: xʸ, 7, 8, 9, × -->
+                    <Button Grid.Row="3" Grid.Column="0" Content="xʸ" Command="{Binding OperatorCommand}" CommandParameter="^" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="1" Content="7" Command="{Binding DigitCommand}" CommandParameter="7" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="2" Content="8" Command="{Binding DigitCommand}" CommandParameter="8" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="3" Content="9" Command="{Binding DigitCommand}" CommandParameter="9" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="4" Content="×" Command="{Binding OperatorCommand}" CommandParameter="*" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 4: 10ˣ (or 2ˣ), 4, 5, 6, − -->
+                    <Button Grid.Row="4" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Setter Property="Content" Value="10ˣ"/>
+                                <Setter Property="CommandParameter" Value="pow10"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Content" Value="2ˣ"/>
+                                        <Setter Property="CommandParameter" Value="pow2"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="4" Grid.Column="1" Content="4" Command="{Binding DigitCommand}" CommandParameter="4" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="2" Content="5" Command="{Binding DigitCommand}" CommandParameter="5" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="3" Content="6" Command="{Binding DigitCommand}" CommandParameter="6" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="4" Content="−" Command="{Binding OperatorCommand}" CommandParameter="-" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 5: log (or log₂), 1, 2, 3, + -->
+                    <Button Grid.Row="5" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Setter Property="Content" Value="log"/>
+                                <Setter Property="CommandParameter" Value="log"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Content" Value="log₂"/>
+                                        <Setter Property="CommandParameter" Value="log2"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="5" Grid.Column="1" Content="1" Command="{Binding DigitCommand}" CommandParameter="1" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="2" Content="2" Command="{Binding DigitCommand}" CommandParameter="2" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="3" Content="3" Command="{Binding DigitCommand}" CommandParameter="3" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="4" Content="+" Command="{Binding OperatorCommand}" CommandParameter="+" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 6: ln (or eˣ), +/-, 0, ., = -->
+                    <Button Grid.Row="6" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
+                                <Setter Property="Content" Value="ln"/>
+                                <Setter Property="CommandParameter" Value="ln"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
+                                        <Setter Property="Content" Value="eˣ"/>
+                                        <Setter Property="CommandParameter" Value="exp"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Row="6" Grid.Column="1" Content="+/-" Command="{Binding ToggleSignCommand}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="6" Grid.Column="2" Content="0" Command="{Binding DigitCommand}" CommandParameter="0" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="6" Grid.Column="3" Content="." Command="{Binding DecimalPointCommand}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="6" Grid.Column="4" Content="=" Command="{Binding EqualsCommand}" Style="{StaticResource EqualsTileStyle}"/>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- TRIGONOMETRY POPUP FLYOUT -->
+        <Border Background="#161B26" BorderBrush="#252E40" BorderThickness="1" 
+                CornerRadius="6" Padding="6" Margin="10,135,10,0"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Width="260"
+                Visibility="{Binding IsTrigFlyoutOpen, Converter={StaticResource BoolToVisConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" Content="sin" Command="{Binding ImmediateFunctionCommand}" CommandParameter="sin" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="cos" Command="{Binding ImmediateFunctionCommand}" CommandParameter="cos" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="tan" Command="{Binding ImmediateFunctionCommand}" CommandParameter="tan" Style="{StaticResource SciTileStyle}"/>
+
+                <Button Grid.Row="1" Grid.Column="0" Content="sec" Command="{Binding ImmediateFunctionCommand}" CommandParameter="sec" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="1" Grid.Column="1" Content="csc" Command="{Binding ImmediateFunctionCommand}" CommandParameter="csc" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="1" Grid.Column="2" Content="cot" Command="{Binding ImmediateFunctionCommand}" CommandParameter="cot" Style="{StaticResource SciTileStyle}"/>
+
+                <Button Grid.Row="2" Grid.Column="0" Content="asin" Command="{Binding ImmediateFunctionCommand}" CommandParameter="asin" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="2" Grid.Column="1" Content="acos" Command="{Binding ImmediateFunctionCommand}" CommandParameter="acos" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="2" Grid.Column="2" Content="atan" Command="{Binding ImmediateFunctionCommand}" CommandParameter="atan" Style="{StaticResource SciTileStyle}"/>
+            </Grid>
+        </Border>
+
+        <!-- FUNCTION POPUP FLYOUT -->
+        <Border Background="#161B26" BorderBrush="#252E40" BorderThickness="1" 
+                CornerRadius="6" Padding="6" Margin="110,135,10,0"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Width="180"
+                Visibility="{Binding IsFuncFlyoutOpen, Converter={StaticResource BoolToVisConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" Content="|x|" Command="{Binding ImmediateFunctionCommand}" CommandParameter="abs" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="⌊x⌋" Command="{Binding ImmediateFunctionCommand}" CommandParameter="floor" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="1" Grid.Column="0" Content="⌈x⌉" Command="{Binding ImmediateFunctionCommand}" CommandParameter="ceil" Style="{StaticResource SciTileStyle}"/>
+                <Button Grid.Row="1" Grid.Column="1" Content="exp" Command="{Binding ImmediateFunctionCommand}" CommandParameter="exp" Style="{StaticResource SciTileStyle}"/>
+            </Grid>
+        </Border>
+
+        <!-- NAVIGATION DRAWER OVERLAY (HAMBURGER MENU) (Matches Image 2) -->
+        <Grid Visibility="{Binding IsNavDrawerOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
+            <!-- Dim Backdrop Background (click to close) -->
+            <Border Background="#77000000" MouseDown="Backdrop_MouseDown"/>
+
+            <!-- Slide Menu Panel on Left -->
+            <Border HorizontalAlignment="Left" Width="260"
+                    Background="#141822" BorderBrush="#252F42" BorderThickness="0,0,1,0"
+                    Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Top Hamburger & Title -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                        <Button Command="{Binding ToggleNavDrawerCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}">
+                            <Viewbox Width="16" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="14">
+                                    <Line X1="1" Y1="2" X2="15" Y2="2" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Line X1="1" Y1="7" X2="15" Y2="7" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Line X1="1" Y1="12" X2="15" Y2="12" Stroke="#FFFFFF" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Nav Items List -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,4,0,0">
+                            <!-- Section: Calculator -->
+                            <TextBlock Text="Calculator" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" Margin="14,10,0,6"/>
+
+                            <!-- Standard Mode Option -->
+                            <Button Command="{Binding SelectModeCommand}" CommandParameter="Standard">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavDrawerButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsStandardMode}" Value="True">
+                                                <Setter Property="Background" Value="#172238"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left Accent Indicator Bar (visible when Standard is active) with #1f5ca9 -->
+                                    <Border Grid.Column="0" Width="3" Height="22" CornerRadius="1.5"
+                                            Background="{StaticResource AccentBg}" HorizontalAlignment="Left"
+                                            Visibility="{Binding IsStandardMode, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                    <!-- White Vector Calculator Icon -->
+                                    <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Rectangle Width="13" Height="15" Canvas.Left="1.5" Canvas.Top="0.5" RadiusX="2" RadiusY="2"
+                                                       Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent"/>
+                                            <Rectangle Width="9" Height="3" Canvas.Left="3.5" Canvas.Top="2.5" RadiusX="0.5" RadiusY="0.5"
+                                                       Fill="#FFFFFF"/>
+                                            <Rectangle Width="2.5" Height="2" Canvas.Left="3.5" Canvas.Top="7" RadiusX="0.5" RadiusY="0.5" Fill="#FFFFFF"/>
+                                            <Rectangle Width="2.5" Height="2" Canvas.Left="8" Canvas.Top="7" RadiusX="0.5" RadiusY="0.5" Fill="#FFFFFF"/>
+                                            <Rectangle Width="2.5" Height="2" Canvas.Left="3.5" Canvas.Top="10.5" RadiusX="0.5" RadiusY="0.5" Fill="#FFFFFF"/>
+                                            <Rectangle Width="2.5" Height="2" Canvas.Left="8" Canvas.Top="10.5" RadiusX="0.5" RadiusY="0.5" Fill="#FFFFFF"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Standard" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- Scientific Mode Option -->
+                            <Button Command="{Binding SelectModeCommand}" CommandParameter="Scientific">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavDrawerButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsScientificMode}" Value="True">
+                                                <Setter Property="Background" Value="#172238"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left Accent Indicator Bar (visible when Scientific is active) with #1f5ca9 -->
+                                    <Border Grid.Column="0" Width="3" Height="22" CornerRadius="1.5"
+                                            Background="{StaticResource AccentBg}" HorizontalAlignment="Left"
+                                            Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                    <!-- White Vector Flask Icon -->
+                                    <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M6,1 L10,1 M8,1 L8,4.5 L13.5,13.5 C13.8,14 13.4,14.5 12.8,14.5 L3.2,14.5 C2.6,14.5 2.2,14 2.5,13.5 L8,4.5 Z"
+                                                  Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent"/>
+                                            <Path Data="M4.5,11.5 L11.5,11.5" Stroke="#FFFFFF" StrokeThickness="1.3"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Scientific" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </Grid>
+                            </Button>
+
+                            <!-- Other upcoming modes (grayed out as requested: "tạm thời chỉ cho 2 cái là standard và scientific") -->
+                            <StackPanel Opacity="0.45" Margin="0,4,0,0">
+                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Rectangle Width="14" Height="14" Canvas.Left="1" Canvas.Top="1" RadiusX="2" RadiusY="2"
+                                                       Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Line X1="8" Y1="1" X2="8" Y2="15" Stroke="#FFFFFF" StrokeThickness="0.8"/>
+                                            <Line X1="1" Y1="8" X2="15" Y2="8" Stroke="#FFFFFF" StrokeThickness="0.8"/>
+                                            <Path Data="M3,12 Q8,2 13,8" Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Graphing" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                </Grid>
+
+                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M4.5,4.5 L1.5,8 L4.5,11.5 M11.5,4.5 L14.5,8 L11.5,11.5 M9.5,3 L6.5,13"
+                                                  Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent" StrokeLineJoin="Round"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Programmer" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                </Grid>
+
+                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Rectangle Width="13" Height="12" Canvas.Left="1.5" Canvas.Top="2.5" RadiusX="2" RadiusY="2"
+                                                       Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Line X1="1.5" Y1="6" X2="14.5" Y2="6" Stroke="#FFFFFF" StrokeThickness="1.2"/>
+                                            <Line X1="5" Y1="1" X2="5" Y2="3.5" Stroke="#FFFFFF" StrokeThickness="1.2"/>
+                                            <Line X1="11" Y1="1" X2="11" Y2="3.5" Stroke="#FFFFFF" StrokeThickness="1.2"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Date calculation" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Section: Converter (Upcoming) -->
+                            <TextBlock Text="Converter" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" Margin="14,14,0,6"/>
+                            <StackPanel Opacity="0.45">
+                                <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Ellipse Width="13" Height="13" Canvas.Left="1.5" Canvas.Top="1.5"
+                                                     Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Path Data="M8,4.5 L8,11.5 M6.5,6 Q8,4.5 9.5,6 T6.5,9.5 Q8,11 9.5,9.5"
+                                                  Stroke="#FFFFFF" StrokeThickness="1.1" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Currency" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </Grid>
+                                <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M8,1.5 L14.5,5 L14.5,11.5 L8,15 L1.5,11.5 L1.5,5 Z M1.5,5 L8,8.5 L14.5,5 M8,8.5 L8,15"
+                                                  Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent" StrokeLineJoin="Round"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Volume" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </Grid>
+                                <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3"/>
+                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M2,13 L13,2 L14.5,3.5 L3.5,14.5 Z M5,8 L6.5,9.5 M7.5,5.5 L9,7 M10,3 L11.5,4.5"
+                                                  Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="3" Text="Length" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Bottom Settings & Info -->
+                    <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="#222838" Padding="0,10,0,4">
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3"/>
+                                <ColumnDefinition Width="11"/>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="16">
+                                    <Path Data="M7,1 L9,1 L9.4,3.2 L10.8,3.8 L12.5,2.4 L13.9,3.8 L12.5,5.5 L13.1,6.9 L15.3,7.3 L15.3,9.3 L13.1,9.7 L12.5,11.1 L13.9,12.8 L12.5,14.2 L10.8,12.8 L9.4,13.4 L9,15.6 L7,15.6 L6.6,13.4 L5.2,12.8 L3.5,14.2 L2.1,12.8 L3.5,11.1 L2.9,9.7 L0.7,9.3 L0.7,7.3 L2.9,6.9 L3.5,5.5 L2.1,3.8 L3.5,2.4 L5.2,3.8 L6.6,3.2 Z M8,6 A2.5,2.5 0 1 0 8,11 A2.5,2.5 0 1 0 8,6 Z"
+                                          Stroke="#FFFFFF" StrokeThickness="1.1" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
+                            <TextBlock Grid.Column="3" Text="CT287 Verification Lab - C# WPF" FontSize="11.5" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- HISTORY FLYOUT / DRAWER ON RIGHT (Matches Image 1 🕒) -->
+        <Grid Visibility="{Binding IsHistoryOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
+            <Border Background="#66000000" MouseDown="Backdrop_MouseDown"/>
+
+            <!-- Expanded Width to 300 for full calculation cards -->
+            <Border HorizontalAlignment="Right" Width="300"
+                    Background="#141822" BorderBrush="#252F42" BorderThickness="1,0,0,0"
+                    Padding="14,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="History" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                        <Button DockPanel.Dock="Right" Content="✕" 
+                                Command="{Binding ToggleHistoryCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+
+                    <!-- History Items List with Full-Width Stretched Cards -->
+                    <ListBox Grid.Row="1" ItemsSource="{Binding History}" 
+                             Background="Transparent" BorderThickness="0"
+                             HorizontalContentAlignment="Stretch"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,2"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.RecallHistoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource HistoryItemButtonStyle}">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Top Formula Line -->
+                                        <TextBlock Grid.Row="0" 
+                                                   Text="{Binding Expression}" 
+                                                   Foreground="{StaticResource TextSecondary}" 
+                                                   FontSize="13" 
+                                                   TextAlignment="Right" 
+                                                   HorizontalAlignment="Stretch"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <!-- Bottom Main Result Line -->
+                                        <TextBlock Grid.Row="1" 
+                                                   Text="{Binding Result}" 
+                                                   Foreground="{StaticResource TextPrimary}" 
+                                                   FontSize="22" 
+                                                   FontWeight="Bold" 
+                                                   TextAlignment="Right" 
+                                                   HorizontalAlignment="Stretch"
+                                                   Margin="0,4,0,0"/>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Bottom Clear History Button -->
+                    <Button Grid.Row="2" Content="🗑  Clear All History" 
+                            Command="{Binding ClearHistoryCommand}"
+                            Style="{StaticResource TileButtonStyle}" Height="36" Margin="0,10,0,0" FontSize="12.5"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- MEMORY DRAWER FLYOUT (M⌄) -->
+        <Grid Visibility="{Binding IsMemoryDrawerOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
+            <Border Background="#66000000" MouseDown="Backdrop_MouseDown"/>
+
+            <Border HorizontalAlignment="Right" Width="240"
+                    Background="#141822" BorderBrush="#252F42" BorderThickness="1,0,0,0"
+                    Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Memory" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                        <Button DockPanel.Dock="Right" Content="✕" 
+                                Command="{Binding ToggleMemoryDrawerCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}" HorizontalAlignment="Right"/>
+                    </DockPanel>
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding MemoryText}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextAccent}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Stored in Memory register" FontSize="12" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,4,0,12"/>
+                        <Button Content="Clear Memory (MC)" Command="{Binding MemoryClearCommand}" Style="{StaticResource TileButtonStyle}" Height="32" Padding="12,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+    </Grid>
+</Window>
