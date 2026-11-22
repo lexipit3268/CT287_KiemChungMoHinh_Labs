@@ -38,6 +38,17 @@ public class MainViewModel : ViewModelBase
     private string _treeResultText = string.Empty;
     private string _treeRpnText = string.Empty;
 
+    // Automata Visualizer Modal (DFA & NFA - CT287 Model Checking)
+    private bool _isAutomataModalOpen = false;
+    private bool _isDfaAutomataMode = true; // true = DFA 8-state, false = NFA number parser
+    private string _automataTitle = string.Empty;
+    private string _automataBadge = "DFA";
+    private string _automataDefinition = string.Empty;
+    private string _automataDescription = string.Empty;
+    private string _automataActiveStateText = string.Empty;
+    private double _automataCanvasWidth = 840;
+    private double _automataCanvasHeight = 460;
+
     // Programmer Mode values
     private ProgrammerValueRepresentation _programmerValues = new();
 
@@ -277,7 +288,73 @@ public class MainViewModel : ViewModelBase
 
     public ObservableCollection<ExpressionTreeNode> TreeNodes { get; } = new();
     public ObservableCollection<ExpressionTreeEdge> TreeEdges { get; } = new();
+    public ObservableCollection<AutomataNode> AutomataNodes { get; } = new();
+    public ObservableCollection<AutomataEdge> AutomataEdges { get; } = new();
     public ObservableCollection<HistoryItem> History { get; } = new();
+
+    // Automata Visualizer Modal Properties
+    public bool IsAutomataModalOpen
+    {
+        get => _isAutomataModalOpen;
+        set => SetProperty(ref _isAutomataModalOpen, value);
+    }
+
+    public bool IsDfaAutomataMode
+    {
+        get => _isDfaAutomataMode;
+        set
+        {
+            if (SetProperty(ref _isDfaAutomataMode, value))
+            {
+                OnPropertyChanged(nameof(IsNfaAutomataMode));
+                RefreshAutomataGraph();
+            }
+        }
+    }
+
+    public bool IsNfaAutomataMode => !IsDfaAutomataMode;
+
+    public string AutomataTitle
+    {
+        get => _automataTitle;
+        set => SetProperty(ref _automataTitle, value);
+    }
+
+    public string AutomataBadge
+    {
+        get => _automataBadge;
+        set => SetProperty(ref _automataBadge, value);
+    }
+
+    public string AutomataDefinition
+    {
+        get => _automataDefinition;
+        set => SetProperty(ref _automataDefinition, value);
+    }
+
+    public string AutomataDescription
+    {
+        get => _automataDescription;
+        set => SetProperty(ref _automataDescription, value);
+    }
+
+    public string AutomataActiveStateText
+    {
+        get => _automataActiveStateText;
+        set => SetProperty(ref _automataActiveStateText, value);
+    }
+
+    public double AutomataCanvasWidth
+    {
+        get => _automataCanvasWidth;
+        set => SetProperty(ref _automataCanvasWidth, value);
+    }
+
+    public double AutomataCanvasHeight
+    {
+        get => _automataCanvasHeight;
+        set => SetProperty(ref _automataCanvasHeight, value);
+    }
 
     // Commands
     public ICommand DigitCommand { get; }
@@ -327,6 +404,13 @@ public class MainViewModel : ViewModelBase
     public ICommand SwitchToAstModeCommand { get; }
     public ICommand SwitchToParseTreeModeCommand { get; }
     public ICommand RefreshTreeCommand { get; }
+
+    // Automata Visualizer Modal Commands (DFA & NFA - CT287)
+    public ICommand ToggleAutomataModalCommand { get; }
+    public ICommand CloseAutomataModalCommand { get; }
+    public ICommand SwitchToDfaAutomataCommand { get; }
+    public ICommand SwitchToNfaAutomataCommand { get; }
+    public ICommand RefreshAutomataCommand { get; }
 
     // Parameterless constructor for WPF XAML
     public MainViewModel() : this(new CalculatorEngine())
@@ -771,6 +855,39 @@ public class MainViewModel : ViewModelBase
             RefreshTreeGraph();
         });
 
+        // 5. Automata Visualizer Modal Commands (DFA & NFA - CT287)
+        ToggleAutomataModalCommand = new RelayCommand(() =>
+        {
+            IsAutomataModalOpen = !IsAutomataModalOpen;
+            if (IsAutomataModalOpen)
+            {
+                IsHistoryOpen = false;
+                IsMemoryDrawerOpen = false;
+                IsTreeModalOpen = false;
+                RefreshAutomataGraph();
+            }
+        });
+
+        CloseAutomataModalCommand = new RelayCommand(() =>
+        {
+            IsAutomataModalOpen = false;
+        });
+
+        SwitchToDfaAutomataCommand = new RelayCommand(() =>
+        {
+            IsDfaAutomataMode = true;
+        });
+
+        SwitchToNfaAutomataCommand = new RelayCommand(() =>
+        {
+            IsDfaAutomataMode = false;
+        });
+
+        RefreshAutomataCommand = new RelayCommand(() =>
+        {
+            RefreshAutomataGraph();
+        });
+
         // Initialize state
         SyncFromState();
         SyncMemory();
@@ -810,9 +927,46 @@ public class MainViewModel : ViewModelBase
         TreeRpnText = graph.Rpn;
     }
 
+    public void RefreshAutomataGraph()
+    {
+        string expr = !string.IsNullOrWhiteSpace(ExpressionDisplay)
+            ? ExpressionDisplay
+            : Display;
+
+        var graph = IsDfaAutomataMode
+            ? _engine.AutomataBuilder.BuildDfaForExpression(expr, _engine.StateMachine.CurrentState, Display)
+            : _engine.AutomataBuilder.BuildNfaForExpression(expr);
+
+        AutomataTitle = graph.Title;
+        AutomataBadge = graph.ModeBadge;
+        AutomataDefinition = graph.FormalDefinition;
+        AutomataDescription = graph.Description;
+        AutomataActiveStateText = graph.ActiveStateName;
+        AutomataCanvasWidth = graph.CanvasWidth;
+        AutomataCanvasHeight = graph.CanvasHeight;
+
+        AutomataNodes.Clear();
+        foreach (var node in graph.Nodes)
+        {
+            AutomataNodes.Add(node);
+        }
+
+        AutomataEdges.Clear();
+        foreach (var edge in graph.Edges)
+        {
+            AutomataEdges.Add(edge);
+        }
+    }
+
     public void HandleKeyboardInput(Key key, ModifierKeys modifiers)
     {
         bool shift = (modifiers & ModifierKeys.Shift) != 0;
+
+        if (IsAutomataModalOpen && key == Key.Escape)
+        {
+            IsAutomataModalOpen = false;
+            return;
+        }
 
         if (IsTreeModalOpen && key == Key.Escape)
         {
@@ -948,6 +1102,11 @@ public class MainViewModel : ViewModelBase
 
         int parenCount = _engine.StateMachine.OpenParenCount;
         OpenParenBadge = parenCount > 0 ? $"({parenCount})" : string.Empty;
+
+        if (IsAutomataModalOpen && IsDfaAutomataMode)
+        {
+            RefreshAutomataGraph();
+        }
     }
 
     private void SyncProgrammerDisplay()

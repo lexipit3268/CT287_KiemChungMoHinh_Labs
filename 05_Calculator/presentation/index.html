@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Đồ án Kiểm chứng mô hình (CT287) - Calculator Lab</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Thanh tiến trình trên cùng -->
+    <div id="top-progress-bar"></div>
+
+    <!-- Header cố định -->
+    <header class="deck-header">
+        <div class="deck-logo">
+            <span class="badge-ctu">CTU • CICT</span>
+            <div>
+                <div class="deck-title-text">KIỂM CHỨNG MÔ HÌNH (CT287) — ĐỒ ÁN MÁY TÍNH CÁ NHÂN</div>
+                <div class="deck-title-sub">Automata Theory (DFA / NFA), Parse Tree (Session 5) &amp; CTL Model Checking</div>
+            </div>
+        </div>
+        <div class="header-controls">
+            <button class="btn-icon" id="fullscreenBtn">Toàn màn hình</button>
+        </div>
+    </header>
+
+    <!-- Khung hiển thị slide lướt ngang -->
+    <main class="slides-viewport">
+        <div class="slides-track" id="slidesTrack">
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 1: TIÊU ĐỀ BÁO CÁO
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide hero-slide active" id="slide-1">
+                <div class="hero-pill">BÁO CÁO ĐỒ ÁN HỌC THUẬT MÔN KIỂM CHỨNG MÔ HÌNH (CT287)</div>
+                <h1 class="hero-title">
+                    MÁY TÍNH CÁ NHÂN &amp; HỆ THỐNG KIỂM CHỨNG HÌNH THỨC OTOMÁT, CÂY PHÂN TÍCH CÚ PHÁP
+                </h1>
+                <p class="hero-subtitle">
+                    Xây dựng ứng dụng tính toán khoa học trên nền tảng C# (.NET 10) WPF và MVVM, tích hợp mô hình Otomát hữu hạn (DFA / NFA) sinh động theo phép tính, cây cú pháp Parse Tree (ngữ pháp V2 Session 5) và bộ kiểm chứng 7 bất biến CTL.
+                </p>
+
+                <div class="hero-meta-grid">
+                    <div class="hero-meta-card">
+                        <div class="hero-meta-label">Môn học</div>
+                        <div class="hero-meta-value">Kiểm chứng mô hình (CT287)</div>
+                    </div>
+                    <div class="hero-meta-card">
+                        <div class="hero-meta-label">Đơn vị đào tạo</div>
+                        <div class="hero-meta-value">Khoa CNTT&amp;TT — ĐH Cần Thơ</div>
+                    </div>
+                    <div class="hero-meta-card">
+                        <div class="hero-meta-label">Kiến trúc</div>
+                        <div class="hero-meta-value">WPF (.NET 10) • MVVM Pattern</div>
+                    </div>
+                    <div class="hero-meta-card">
+                        <div class="hero-meta-label">Độ bao phủ kiểm thử</div>
+                        <div class="hero-meta-value">46 / 46 Test Cases (100% Passed)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 2: ĐẶT VẤN ĐỀ VÀ MỤC TIÊU
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-2">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 1 • Đặt Vấn Đề</div>
+                    <h2 class="slide-title">Mục Tiêu Áp Dụng Kiểm Chứng Mô Hình Vào Ứng Dụng Tính Toán</h2>
+                    <p class="slide-subtitle">So sánh phương pháp kiểm chứng hình thức (Formal Verification) với kiểm thử truyền thống (Testing)</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">1. Vấn đề của kiểm thử truyền thống (Testing)</div>
+                        <div class="card-text">
+                            <p>Kiểm thử thông thường chỉ kích hoạt được một tập con hữu hạn các ca thử nghiệm (test cases):</p>
+                            <ul style="padding-left: 18px; margin-top: 8px; line-height: 1.7;">
+                                <li>Không chứng minh được sự vắng mặt của lỗi trong toàn bộ không gian trạng thái.</li>
+                                <li>Dễ bỏ sót lỗi ở các ca biên phức tạp (nhập số lớn 45 chữ số, nhấn liên tục toán tử, lồng ngoặc không cân bằng).</li>
+                                <li>Không thể đưa ra chứng minh toán học về tính toàn vẹn (Soundness) và tính kết thúc (Termination).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">2. Giải pháp Kiểm chứng mô hình (Model Checking)</div>
+                        <div class="card-text">
+                            <p>Kiểm chứng mô hình khảo sát tự động toàn bộ không gian trạng thái của hệ thống:</p>
+                            <ul style="padding-left: 18px; margin-top: 8px; line-height: 1.7;">
+                                <li>Hệ thống được mô hình hóa thành Otomát hữu hạn xác định (DFA) và hệ chuyển trạng thái Kripke.</li>
+                                <li>Đặc tả các tính chất An toàn (Safety) và Sống (Liveness) bằng logic thời gian cây tính toán (CTL).</li>
+                                <li>Xác nhận bất biến bằng thuật toán duyệt đồ thị toàn diện: <span class="math">M ⊨ φ</span>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 3: KIẾN TRÚC PHÂN LỚP
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-3">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 2 • Kiến Trúc Phần Mềm</div>
+                    <h2 class="slide-title">Kiến Trúc Phân Lớp 3 Tầng &amp; Mô Hình MVVM</h2>
+                    <p class="slide-subtitle">Tách biệt hoàn toàn tầng logic nghiệp vụ, giải thuật kiểm chứng khỏi tầng giao diện người dùng</p>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card card-primary">
+                        <div class="card-title">Calculator.Core</div>
+                        <div class="card-text">
+                            <p>Thư viện Class Library thuần C# (.NET 10):</p>
+                            <ul style="padding-left: 16px; margin-top: 6px; line-height: 1.6;">
+                                <li><strong>CalculatorStateMachine</strong>: Quản lý trạng thái và chuyển dịch FSM.</li>
+                                <li><strong>ExpressionEvaluator</strong>: Phân tích từ vựng và thuật toán Shunting-Yard.</li>
+                                <li><strong>ExpressionTreeBuilder</strong>: Dựng cây Parse Tree (E-T-F) và AST.</li>
+                                <li><strong>AutomataBuilderService</strong>: Dựng đồ thị DFA và NFA theo phép tính.</li>
+                                <li><strong>ModelCheckingService</strong>: Kiểm chứng 7 đặc tính CTL.</li>
+                                <li><strong>ProgrammerEngine</strong>: 4 cơ số và phép toán bitwise.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">Calculator.UI</div>
+                        <div class="card-text">
+                            <p>Ứng dụng desktop WPF theo mẫu thiết kế MVVM:</p>
+                            <ul style="padding-left: 16px; margin-top: 6px; line-height: 1.6;">
+                                <li><strong>MainViewModel</strong>: Đóng gói toàn bộ lệnh ICommand và thuộc tính ràng buộc dữ liệu.</li>
+                                <li>3 Chế độ bàn phím: Standard, Scientific, Programmer.</li>
+                                <li>Drawer Navigation &amp; Lịch sử tính toán.</li>
+                                <li>Modal 2D Canvas trực quan hóa cây biểu thức.</li>
+                                <li>Modal 2D Canvas trực quan hóa sơ đồ DFA/NFA theo phép tính.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">Calculator.Tests</div>
+                        <div class="card-text">
+                            <p>Dự án kiểm thử tự động với MSTest:</p>
+                            <ul style="padding-left: 16px; margin-top: 6px; line-height: 1.6;">
+                                <li>46 Test cases bao phủ toàn diện 100% các lớp logic.</li>
+                                <li>Kiểm tra tính đúng đắn của giải thuật chuyển cơ số.</li>
+                                <li>Kiểm tra không xảy ra Deadlock trên mọi trạng thái.</li>
+                                <li>Kiểm tra tự động sinh đồ thị DFA/NFA từ biểu thức.</li>
+                                <li>Thời gian thực thi toàn bộ: ~200 ms.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 4: DFA THEO PHÉP TÍNH
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-4">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 3 • Lý Thuyết Otomát</div>
+                    <h2 class="slide-title">Mô Hình Otomát Hữu Hạn Xác Định (DFA) Tạo Theo Phép Tính</h2>
+                    <p class="slide-subtitle">Định nghĩa hình thức: <span class="math">M = (Q, Σ, δ, S₀, F)</span> sinh động theo chuỗi token của biểu thức</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">1. Cơ chế sinh DFA tương ứng với biểu thức</div>
+                        <div class="card-text">
+                            <p>Với mỗi phép tính cụ thể (ví dụ: <span class="math">w = 8 * 9</span> hoặc <span class="math">w = (5 + 6) * 2</span>):</p>
+                            <ul style="padding-left: 18px; line-height: 1.7; margin-top: 8px;">
+                                <li>Chuỗi token được phân rã tuần tự: <span class="math">T = [t₁, t₂, ..., tₖ]</span>.</li>
+                                <li><strong>Trạng thái khởi đầu S₀</strong>: Đại diện cho cấu hình ban đầu trước khi đọc biểu thức.</li>
+                                <li><strong>Chuỗi trạng thái S₁..Sₖ</strong>: Mỗi trạng thái đại diện cho việc tiêu thụ thành công token <span class="math">tᵢ</span> (toán hạng, toán tử, dấu ngoặc).</li>
+                                <li><strong>Trạng thái chấp nhận S_EVAL</strong>: Nhận diện ký tự '=' và kết xuất giá trị kết quả (vẽ vòng đôi Double Circle).</li>
+                                <li><strong>Trạng thái bẫy lỗi S_TRAP</strong>: Bắt giữ mọi thao tác nhập sai cú pháp (toán tử liên tiếp, thiếu toán hạng).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">2. Minh họa chuỗi chuyển dịch trạng thái</div>
+                        <div class="card-text">
+                            <p>Xét phép tính <span class="math">8 * 9 = 72</span>:</p>
+                            <div class="math-display">
+                                S₀ ──[ 8 ]──► S₁ ──[ * ]──► S₂ ──[ 9 ]──► S₃ ──[ = ]──► (( S_EVAL: 72 ))
+                            </div>
+                            <div class="code-box" style="margin-top: 10px;">
+// Hàm chuyển trạng thái δ cho phép tính:
+δ(S₀, "8") = S₁          // Đọc toán hạng thứ nhất
+δ(S₁, "*") = S₂          // Đọc toán tử phép nhân
+δ(S₂, "9") = S₃          // Đọc toán hạng thứ hai
+δ(S₃, "=") = S_EVAL      // Chấp nhận chuỗi và trả về 72
+δ(S₂, "*") = S_TRAP      // Bẫy lỗi cú pháp khi bấm liên tục toán tử
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 5: NFA THEO PHÉP TÍNH
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-5">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 4 • Otomát Bất Định</div>
+                    <h2 class="slide-title">Mô Hình NFA Theo Phép Tính &amp; Bước Chuyển Epsilon (ε)</h2>
+                    <p class="slide-subtitle">Áp dụng giải thuật Thompson xây dựng NFA với bước chuyển <span class="math">ε</span> theo cấu trúc biểu thức</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">1. Cấu trúc Thompson NFA cho biểu thức</div>
+                        <div class="card-text">
+                            <p>Mô hình hóa phép tính thành đồ thị NFA-ε:</p>
+                            <ul style="padding-left: 18px; line-height: 1.7; margin-top: 8px;">
+                                <li>Mỗi phần tử cú pháp được ghép nối thông qua trạng thái trung gian <span class="math">ε</span>.</li>
+                                <li>Cung <span class="math">ε</span> cho phép hệ thống chuyển trạng thái tự do mà không cần tiêu thụ ký tự đầu vào.</li>
+                                <li>Phân nhánh không tiền định (Non-deterministic branching) biểu diễn tính ưu tiên giữa các toán tử (*, / trước; +, - sau).</li>
+                                <li>Trạng thái kết thúc của toán hạng cuối cùng chuyển về trạng thái chấp nhận <span class="math">q_accept</span>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">2. Định nghĩa hình thức và chuyển đổi NFA ➔ DFA</div>
+                        <div class="card-text">
+                            <div class="math-display">
+                                M = (Q, Σ, δ, q₀, F) | Σ = Tokens ∪ {ε}, F = {q_accept}
+                            </div>
+                            <p style="margin-top: 10px;">Thuật toán xây dựng tập con (Subset Construction):</p>
+                            <div class="code-box" style="margin-top: 6px;">
+1. Tính toán bao đóng ε-Closure(q₀) để xác định trạng thái ban đầu của DFA.
+2. Với mỗi tập trạng thái S và ký hiệu a ∈ Σ:
+   DFA_State = ε-Closure(Move(S, a))
+3. Lặp lại cho đến khi không sinh thêm trạng thái mới.
+4. Trạng thái DFA chứa bất kỳ trạng thái nào thuộc F sẽ là trạng thái kết thúc.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 6: PARSE TREE (SESSION 5) VÀ AST
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-6">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 5 • Phân Tích Cú Pháp (Session 5)</div>
+                    <h2 class="slide-title">Cây Phân Tích Cú Pháp (Parse Tree V2) &amp; Cây Toán Tử (AST)</h2>
+                    <p class="slide-subtitle">Triển khai chuẩn xác ngữ pháp đệ quy V2 từ bài thực hành Session 5 - Expression của môn học</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card card-primary">
+                        <div class="card-title">1. Parse Tree (Ngữ pháp phân cấp V2)</div>
+                        <div class="card-text">
+                            <div class="math-display">
+                                E ➔ T ((+ | -) T)*<br>
+                                T ➔ F ((* | /) F)*<br>
+                                F ➔ (E) | id
+                            </div>
+                            <ul style="padding-left: 18px; line-height: 1.6; margin-top: 8px;">
+                                <li><strong>E (Expression)</strong>: Biểu thức cấp thấp, chứa phép cộng và trừ.</li>
+                                <li><strong>T (Term)</strong>: Số hạng trung gian, chứa phép nhân và chia.</li>
+                                <li><strong>F (Factor)</strong>: Thừa số nguyên tử, chứa số thực hoặc biểu thức con trong ngoặc.</li>
+                                <li>Phân cấp rõ ràng giải quyết triệt để tính nhập nhằng (Ambiguity).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">2. AST (Cây cú pháp trừu tượng Shunting-Yard)</div>
+                        <div class="card-text">
+                            <p>Chuyển đổi chuỗi trung tố sang hậu tố (RPN) bằng thuật toán Dijkstra Shunting-Yard:</p>
+                            <div class="code-box" style="margin: 8px 0;">
+Biểu thức: 3 + 5 * 2
+RPN: [3, 5, 2, *, +]
+
+Cấu trúc AST:
+       [ + ]
+      /     \
+    [ 3 ]   [ * ]
+           /     \
+         [ 5 ]   [ 2 ]
+                            </div>
+                            <p>Loại bỏ toàn bộ các nút biến đổi trung gian, chỉ lưu trữ toán tử tại nút cha và toán hạng tại nút lá.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 7: 7 BẤT BIẾN CTL
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-7">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 6 • Kiểm Chứng Hình Thức CTL</div>
+                    <h2 class="slide-title">Bảng 7 Bất Biến CTL (Safety &amp; Liveness Properties)</h2>
+                    <p class="slide-subtitle">Đặc tả toán học bằng logic thời gian CTL và kiểm chứng tự động trên hệ chuyển trạng thái</p>
+                </div>
+
+                <div class="card" style="padding: 0;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Mã số</th>
+                                <th>Tên đặc tính</th>
+                                <th>Phân loại</th>
+                                <th>Công thức toán học CTL</th>
+                                <th>Ý nghĩa kiểm chứng</th>
+                                <th>Kết quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>PROP-01</strong></td>
+                                <td>Parenthesis Non-Negativity</td>
+                                <td>Safety</td>
+                                <td><span class="math">AG(OpenParenCount ≥ 0)</span></td>
+                                <td>Số ngoặc mở luôn lớn hơn hoặc bằng số ngoặc đóng</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-02</strong></td>
+                                <td>Single Decimal Point</td>
+                                <td>Safety</td>
+                                <td><span class="math">AG(HasDecimal ∧ Input='.' ⇒ Reject)</span></td>
+                                <td>Ngăn chặn hoàn toàn việc nhập hai dấu chấm trong cùng một toán hạng</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-03</strong></td>
+                                <td>Zero Division Crash Freedom</td>
+                                <td>Safety</td>
+                                <td><span class="math">AG(DivByZero ⇒ State=S_Error ∧ ¬Crash)</span></td>
+                                <td>Bẫy lỗi chia cho 0 an toàn, chuyển trạng thái lỗi, không gây crash ứng dụng</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-04</strong></td>
+                                <td>Initial State Consistency</td>
+                                <td>Safety</td>
+                                <td><span class="math">AG(State=S₀ ⇒ Display="0" ∧ Buffer=∅)</span></td>
+                                <td>Trạng thái khởi tạo luôn có giá trị hiển thị là 0 và bộ đệm rỗng</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-05</strong></td>
+                                <td>Deadlock Freedom</td>
+                                <td>Liveness</td>
+                                <td><span class="math">AG(∀s ∈ Q: ∃a ∈ Σ, δ(s, a) ∈ Q)</span></td>
+                                <td>Mọi trạng thái đều có ít nhất một hành động kích hoạt hợp lệ</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-06</strong></td>
+                                <td>Reset Reachability</td>
+                                <td>Liveness</td>
+                                <td><span class="math">AG(EF(State = S₀))</span></td>
+                                <td>Từ bất kỳ trạng thái nào trong hệ thống, luôn tồn tại đường đi trở về trạng thái S0</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>PROP-07</strong></td>
+                                <td>Evaluation Reachability</td>
+                                <td>Liveness</td>
+                                <td><span class="math">AG(ValidInput ∧ Input='=' ⇒ EX(State=S_EVAL))</span></td>
+                                <td>Khi biểu thức hợp lệ và bấm '=', hệ thống luôn chuyển sang trạng thái kết quả</td>
+                                <td><span class="status-badge status-pass">PASSED</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 8: CHẾ ĐỘ LẬP TRÌNH VIÊN
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-8">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 7 • Chế Độ Lập Trình Viên</div>
+                    <h2 class="slide-title">Chế Độ Lập Trình Viên: 4 Hệ Cơ Số &amp; Mặt Nạ Từ Nhớ</h2>
+                    <p class="slide-subtitle">Ràng buộc bảng chữ cái động <span class="math">Σ_base</span> và các phép toán thao tác bit phần cứng</p>
+                </div>
+
+                <div class="grid-4">
+                    <div class="card card-primary">
+                        <div class="card-title">HEX (Cơ số 16)</div>
+                        <div class="card-text">
+                            <p><strong>Bảng chữ cái:</strong></p>
+                            <p><span class="math">Σ_HEX = {0..9, A..F}</span></p>
+                            <p style="margin-top: 6px;">Hiển thị định dạng Hexadecimal cho thanh ghi và địa chỉ bộ nhớ.</p>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">DEC (Cơ số 10)</div>
+                        <div class="card-text">
+                            <p><strong>Bảng chữ cái:</strong></p>
+                            <p><span class="math">Σ_DEC = {0..9}</span></p>
+                            <p style="margin-top: 6px;">Biểu diễn số nguyên có dấu 64-bit chuẩn (Signed Int64).</p>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">OCT (Cơ số 8)</div>
+                        <div class="card-text">
+                            <p><strong>Bảng chữ cái:</strong></p>
+                            <p><span class="math">Σ_OCT = {0..7}</span></p>
+                            <p style="margin-top: 6px;">Hiển thị bát phân phục vụ phân quyền tệp POSIX.</p>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title">BIN (Cơ số 2)</div>
+                        <div class="card-text">
+                            <p><strong>Bảng chữ cái:</strong></p>
+                            <p><span class="math">Σ_BIN = {0, 1}</span></p>
+                            <p style="margin-top: 6px;">Hiển thị chuỗi nhị phân định dạng nhóm 4-bit (nibbles).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top: 18px;">
+                    <div class="card">
+                        <div class="card-title">Mặt nạ từ nhớ phần cứng (Word Size Masks)</div>
+                        <div class="card-text">
+                            <ul style="padding-left: 18px; line-height: 1.7;">
+                                <li><strong>QWORD (64-bit)</strong>: <span class="math">Mask = 0xFFFFFFFFFFFFFFFF</span></li>
+                                <li><strong>DWORD (32-bit)</strong>: <span class="math">Mask = 0x00000000FFFFFFFF</span></li>
+                                <li><strong>WORD (16-bit)</strong>: <span class="math">Mask = 0x000000000000FFFF</span></li>
+                                <li><strong>BYTE (8-bit)</strong>: <span class="math">Mask = 0x00000000000000FF</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Tập toán tử Bitwise &amp; Lật Bit</div>
+                        <div class="card-text">
+                            <ul style="padding-left: 18px; line-height: 1.7;">
+                                <li>Phép toán logic: <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>NOT</code> (đảo bit theo mask).</li>
+                                <li>Phép dịch bit: <code>Lsh</code> (<span class="math">&lt;&lt;</span>) và <code>Rsh</code> (<span class="math">&gt;&gt;</span>).</li>
+                                <li>Phép chia dư: <code>Mod</code> có bẫy lỗi chia cho 0.</li>
+                                <li>Cơ chế lật bit trực tiếp (Toggle Bit) từ bit 0 đến bit 63.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 9: KẾT QUẢ KIỂM THỬ
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide" id="slide-9">
+                <div class="slide-header">
+                    <div class="slide-tag">Phần 8 • Kiểm Thử Tự Động</div>
+                    <h2 class="slide-title">Kết Quả Kiểm Thử Đơn Vị (MSTest: 46/46 Passed)</h2>
+                    <p class="slide-subtitle">Đảm bảo độ tin cậy, tính toàn vẹn và ngăn ngừa lỗi hồi quy trên toàn hệ sinh thái phần mềm</p>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card card-primary">
+                        <div class="card-title">Tổng quan kết quả</div>
+                        <div class="card-text">
+                            <p style="font-size: 24px; font-weight: 800; color: var(--primary-blue); margin: 6px 0;">46 / 46 PASSED (100%)</p>
+                            <p>Thời gian thực thi: <strong>166 ms</strong> trên nền tảng .NET 10.</p>
+                            <p style="margin-top: 8px;">Trạng thái: Hoàn toàn không có cảnh báo (0 Warning, 0 Error).</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Phân loại nhóm bài kiểm thử</div>
+                        <div class="card-text">
+                            <ul style="padding-left: 16px; line-height: 1.6; font-size: 12.5px;">
+                                <li><strong>StateMachineTests</strong>: 15 tests (FSM DFA, lặp dấu '=', hoàn thành toán tử treo, số lớn 45 số).</li>
+                                <li><strong>ExpressionEvaluatorTests</strong>: 8 tests (Shunting-yard, ngoặc lồng nhau, hàm khoa học).</li>
+                                <li><strong>ProgrammerEngineTests</strong>: 7 tests (4 cơ số, bitwise, chia 0 trong programmer).</li>
+                                <li><strong>ModelCheckingAndAstTests</strong>: 5 tests (Kiểm chứng 7 đặc tính CTL, AST, xuất Graphviz/JSON).</li>
+                                <li><strong>ExpressionTreeBuilderTests</strong>: 5 tests (Parse Tree E-T-F, AST Canvas).</li>
+                                <li><strong>CalculatorEngineTests &amp; Memory</strong>: 4 tests.</li>
+                                <li><strong>AutomataTests</strong>: 2 tests (Sinh DFA/NFA theo phép tính).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Xử lý các ca biên đặc biệt</div>
+                        <div class="card-text">
+                            <ul style="padding-left: 16px; line-height: 1.6; font-size: 12.5px;">
+                                <li><strong>Nhập số lớn 45 chữ số</strong>: Thuật toán Dynamic Downsizing tự động co giãn font chữ, không tràn màn hình.</li>
+                                <li><strong>Tính toán lặp liên tiếp (=)</strong>: Áp dụng lại toán tử và toán hạng cuối cùng (5 + 2 = 7 ➔ = 9 ➔ = 11).</li>
+                                <li><strong>Toán tử treo</strong>: Bấm "5 + =" tự động bù toán hạng thành "5 + 5 = 10".</li>
+                                <li><strong>Bẫy lỗi chia cho 0</strong>: Bắt lỗi ở cả 3 chế độ (Standard, Scientific, Programmer).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════════════
+                 SLIDE 10: TỔNG KẾT
+                 ══════════════════════════════════════════════════════════════════ -->
+            <section class="slide hero-slide" id="slide-10">
+                <div class="hero-pill">TỔNG KẾT BÁO CÁO ĐỒ ÁN</div>
+                <h2 class="hero-title" style="font-size: 32px;">
+                    ĐÁNH GIÁ KẾT QUẢ VÀ ĐÓNG GÓP CỦA ĐỒ ÁN CT287
+                </h2>
+                <p class="hero-subtitle">
+                    Đồ án đã hiện thực hóa trọn vẹn sự kết hợp giữa lý thuyết kiểm chứng mô hình với ứng dụng phần mềm máy tính hiện đại.
+                </p>
+
+                <div class="grid-3" style="max-width: 950px; text-align: left; margin-bottom: 24px;">
+                    <div class="card card-primary">
+                        <div class="card-title">1. Giá trị học thuật</div>
+                        <div class="card-text">
+                            Hiện thực hóa trực tiếp lý thuyết Otomát hữu hạn (DFA/NFA sinh theo biểu thức), ngữ pháp đệ quy V2 từ Session 5 và kiểm chứng 7 bất biến CTL.
+                        </div>
+                    </div>
+                    <div class="card card-primary">
+                        <div class="card-title">2. Giá trị kỹ thuật</div>
+                        <div class="card-text">
+                            Kiến trúc phân lớp chuẩn mực, mã nguồn độc lập 100%, 3 chế độ máy tính (Standard, Scientific, Programmer) hoạt động ổn định và chính xác.
+                        </div>
+                    </div>
+                    <div class="card card-primary">
+                        <div class="card-title">3. Khả năng tương tác</div>
+                        <div class="card-text">
+                            Hai Modal đồ họa 2D Canvas trực quan hóa cây biểu thức và sơ đồ chuyển trạng thái Otomát, kèm giao diện thuyết trình lướt ngang chuẩn mực.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="color: var(--primary-blue); font-weight: 700; font-size: 15px;">
+                    TRÂN TRỌNG CẢM ƠN QUÝ THẦY CÔ VÀ CÁC BẠN ĐÃ THEO DÕI.
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer điều khiển chuyển slide -->
+    <footer class="deck-footer">
+        <div class="nav-buttons">
+            <button class="btn-nav" id="prevBtn" title="Phím tắt: Mũi tên trái, PageUp, Backspace">Trước</button>
+            <button class="btn-nav" id="nextBtn" title="Phím tắt: Mũi tên phải, Space, Enter, PageDown">Tiếp theo</button>
+        </div>
+
+        <div class="pagination-dots" id="paginationDots">
+            <!-- Tự động tạo bằng JavaScript -->
+        </div>
+
+        <div class="slide-counter" id="slideCounter">
+            01 / 10
+        </div>
+    </footer>
+
+    <script src="presentation.js"></script>
+</body>
+</html>

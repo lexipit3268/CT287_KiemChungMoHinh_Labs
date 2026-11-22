@@ -6,7 +6,7 @@
         xmlns:viewmodels="clr-namespace:Calculator.UI.ViewModels"
         mc:Ignorable="d"
         Title="Calculator - CT287 Model Checking Lab"
-        Height="670" Width="400" MinHeight="560" MinWidth="360"
+        Height="650" Width="380" MinHeight="480" MinWidth="320"
         Background="{StaticResource WindowBg}" Foreground="{StaticResource TextPrimary}"
         WindowStartupLocation="CenterScreen"
         KeyDown="Window_KeyDown">
@@ -32,8 +32,9 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/> <!-- Hamburger ☰ -->
                     <ColumnDefinition Width="Auto"/> <!-- Title "Standard" / "Scientific" / "Programmer" -->
-                    <ColumnDefinition Width="*"/>    <!-- FSM Status Badge (Clickable) -->
-                    <ColumnDefinition Width="Auto"/> <!-- Model Checking 🔬 -->
+                    <ColumnDefinition Width="*"/>    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/> <!-- Automata Visualizer (DFA & NFA) 🔄 -->
+                    <ColumnDefinition Width="Auto"/> <!-- Expression Tree Visualizer 🌳 -->
                     <ColumnDefinition Width="Auto"/> <!-- History 🕒 -->
                 </Grid.ColumnDefinitions>
 
@@ -54,15 +55,32 @@
                 <!-- Current Mode Title -->
                 <TextBlock Grid.Column="1" 
                            Text="{Binding ModeTitle}" 
-                           FontSize="20" FontWeight="Bold" 
+                           FontSize="18" FontWeight="Bold" 
                            Foreground="{StaticResource TextPrimary}"
-                           VerticalAlignment="Center" Margin="8,0,8,0"/>
+                           VerticalAlignment="Center" Margin="8,0,4,0"
+                           TextTrimming="CharacterEllipsis"/>
 
                 <!-- Spacer -->
                 <Border Grid.Column="2"/>
 
-                <!-- Expression Tree Visualizer Button 🌳 -->
+                <!-- Automata Visualizer Button (DFA & NFA - CT287) 🔄 -->
                 <Button Grid.Column="3" 
+                        Command="{Binding ToggleAutomataModalCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}"
+                        ToolTip="Automata Visualizer (DFA &amp; NFA - CT287)"
+                        Margin="0,0,4,0">
+                    <Viewbox Width="17" Height="17" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="16">
+                            <Ellipse Width="4.5" Height="4.5" Canvas.Left="1.5" Canvas.Top="2" Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                            <Ellipse Width="4.5" Height="4.5" Canvas.Left="10" Canvas.Top="2" Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                            <Ellipse Width="5.5" Height="5.5" Canvas.Left="5.25" Canvas.Top="8.5" Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
+                            <Path Data="M6,4.25 L10,4.25 M4,6.5 L6,9 M12,6.5 L10,9" Stroke="#FFFFFF" StrokeThickness="1"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+
+                <!-- Expression Tree Visualizer Button 🌳 -->
+                <Button Grid.Column="4" 
                         Command="{Binding ToggleTreeModalCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}"
                         ToolTip="Expression Tree Visualizer (Session 5 - Expression)"
@@ -77,7 +95,7 @@
                 </Button>
 
                 <!-- History Button (White Vector Clock Icon) -->
-                <Button Grid.Column="4" 
+                <Button Grid.Column="5" 
                         Command="{Binding ToggleHistoryCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}"
                         ToolTip="Calculation History">
@@ -183,7 +201,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" Text="{Binding HexDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                                <Viewbox Grid.Column="1" HorizontalAlignment="Right" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="18">
+                                    <TextBlock Text="{Binding HexDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" Foreground="{StaticResource TextPrimary}"/>
+                                </Viewbox>
                             </Grid>
                         </Button>
 
@@ -206,7 +226,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" Text="{Binding DecDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                                <Viewbox Grid.Column="1" HorizontalAlignment="Right" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="18">
+                                    <TextBlock Text="{Binding DecDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" Foreground="{StaticResource TextPrimary}"/>
+                                </Viewbox>
                             </Grid>
                         </Button>
 
@@ -229,7 +251,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" Text="{Binding OctDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                                <Viewbox Grid.Column="1" HorizontalAlignment="Right" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="18">
+                                    <TextBlock Text="{Binding OctDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" Foreground="{StaticResource TextPrimary}"/>
+                                </Viewbox>
                             </Grid>
                         </Button>
 
@@ -252,7 +276,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBlock Grid.Column="1" Text="{Binding BinDisplay}" FontSize="11" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                                <Viewbox Grid.Column="1" HorizontalAlignment="Right" Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="18">
+                                    <TextBlock Text="{Binding BinDisplay}" FontSize="11" FontFamily="Consolas, Segoe UI" Foreground="{StaticResource TextPrimary}"/>
+                                </Viewbox>
                             </Grid>
                         </Button>
                     </StackPanel>
@@ -683,7 +709,7 @@
             <Border Background="#77000000" MouseDown="Backdrop_MouseDown"/>
 
             <!-- Slide Menu Panel on Left -->
-            <Border HorizontalAlignment="Left" Width="260"
+            <Border HorizontalAlignment="Left" Width="250" MaxWidth="280"
                     Background="#141822" BorderBrush="#252F42" BorderThickness="0,0,1,0"
                     Padding="10">
                 <Grid>
@@ -708,7 +734,7 @@
                     </StackPanel>
 
                     <!-- Nav Items List -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,4,0,0">
                             <!-- Section: Calculator -->
                             <TextBlock Text="Calculator" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" Margin="14,10,0,6"/>
@@ -726,9 +752,10 @@
                                 </Button.Style>
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
@@ -750,8 +777,8 @@
                                             <Rectangle Width="2.5" Height="2" Canvas.Left="8" Canvas.Top="10.5" RadiusX="0.5" RadiusY="0.5" Fill="#FFFFFF"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Standard" FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Standard" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
 
@@ -768,9 +795,10 @@
                                 </Button.Style>
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
@@ -787,8 +815,8 @@
                                             <Path Data="M4.5,11.5 L11.5,11.5" Stroke="#FFFFFF" StrokeThickness="1.3"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Scientific" FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Scientific" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
 
@@ -805,9 +833,10 @@
                                 </Button.Style>
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
@@ -823,19 +852,45 @@
                                                   Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent" StrokeLineJoin="Round"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Programmer" FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Programmer" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
 
-                            <!-- Section: CT287 Expression Tree Analysis -->
-                            <TextBlock Text="Expression Tree Analysis" Foreground="{StaticResource TextAccent}" FontSize="12" FontWeight="Bold" Margin="14,16,0,6"/>
+                            <!-- Section: CT287 Expression Tree & Automata Analysis -->
+                            <TextBlock Text="Formal Automata &amp; Grammar" Foreground="{StaticResource TextAccent}" FontSize="12" FontWeight="Bold" Margin="14,16,0,6"/>
+                            
+                            <!-- Automata Visualizer (DFA & NFA) Item -->
+                            <Button Command="{Binding ToggleAutomataModalCommand}" Style="{StaticResource NavDrawerButtonStyle}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Canvas Width="16" Height="16">
+                                            <Ellipse Width="4.5" Height="4.5" Canvas.Left="1.5" Canvas.Top="2" Stroke="#38BDF8" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Ellipse Width="4.5" Height="4.5" Canvas.Left="10" Canvas.Top="2" Stroke="#38BDF8" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Ellipse Width="5.5" Height="5.5" Canvas.Left="5.25" Canvas.Top="8.5" Stroke="#4ea2ff" StrokeThickness="1.2" Fill="Transparent"/>
+                                            <Path Data="M6,4.25 L10,4.25 M4,6.5 L6,9 M12,6.5 L10,9" Stroke="#38BDF8" StrokeThickness="1"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Grid.Column="4" Text="🔄 DFA &amp; NFA Automata" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextAccent}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+
+                            <!-- Parse Tree & AST Item -->
                             <Button Command="{Binding ToggleTreeModalCommand}" Style="{StaticResource NavDrawerButtonStyle}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -845,8 +900,8 @@
                                                   Stroke="#4ea2ff" StrokeThickness="1.5" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="🌳 Parse Tree &amp; AST" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextAccent}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="🌳 Parse Tree &amp; AST" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextAccent}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
 
@@ -855,9 +910,10 @@
                             <StackPanel Opacity="0.45">
                                 <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -868,13 +924,14 @@
                                                   Stroke="#FFFFFF" StrokeThickness="1.1" Fill="Transparent"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Currency" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Currency" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                                 <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
+                                        <ColumnDefinition Width="4"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -883,7 +940,7 @@
                                                   Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent" StrokeLineJoin="Round"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Volume" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    <TextBlock Grid.Column="4" Text="Volume" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
@@ -904,7 +961,7 @@
                                           Stroke="#FFFFFF" StrokeThickness="1.1" Fill="Transparent"/>
                                 </Canvas>
                             </Viewbox>
-                            <TextBlock Grid.Column="3" Text="CT287 Verification Lab - C# WPF" FontSize="11.5" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            <TextBlock Grid.Column="4" Text="CT287 Verification Lab - C# WPF" FontSize="11.5" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Left" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                 </Grid>
@@ -915,7 +972,7 @@
         <Grid Visibility="{Binding IsHistoryOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="110">
             <Border Background="#66000000" MouseDown="Backdrop_MouseDown"/>
 
-            <Border HorizontalAlignment="Right" Width="300"
+            <Border HorizontalAlignment="Right" Width="280" MaxWidth="300"
                     Background="#141822" BorderBrush="#252F42" BorderThickness="1,0,0,0"
                     Padding="14,12">
                 <Grid>
@@ -1166,6 +1223,215 @@
                                     <TextBlock Text="{Binding TreeResultText, StringFormat='Result: {0}'}" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,12,0"/>
                                     <TextBlock Text="{Binding TreeRpnText, StringFormat='RPN: [{0}]'}" FontSize="11" Foreground="{StaticResource TextAccent}" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- AUTOMATA VISUALIZER MODAL (DFA & NFA - CT287 MODEL CHECKING) -->
+        <Grid Visibility="{Binding IsAutomataModalOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="135">
+            <!-- Modal Backdrop (Click to dismiss) -->
+            <Border Background="#88000000" MouseDown="Backdrop_MouseDown"/>
+
+            <!-- Center Modal Window Container -->
+            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Margin="10,12"
+                    Background="#111622" BorderBrush="#252F42" BorderThickness="1.5"
+                    CornerRadius="10" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Row 0: Modal Header -->
+                        <RowDefinition Height="Auto"/> <!-- Row 1: Mode Switcher Tabs (DFA vs NFA) -->
+                        <RowDefinition Height="*"/>    <!-- Row 2: Automata Canvas in ScrollViewer -->
+                        <RowDefinition Height="Auto"/> <!-- Row 3: Footer Status & Formal Info -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🔄" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <StackPanel>
+                                <TextBlock Text="{Binding AutomataTitle}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                                <TextBlock Text="{Binding AutomataDefinition}" FontSize="11" Foreground="{StaticResource TextAccent}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button DockPanel.Dock="Right" Content="✕" 
+                                Command="{Binding CloseAutomataModalCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}" 
+                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <!-- Row 1: Mode Switcher Tabs (DFA vs NFA) -->
+                    <Border Grid.Row="1" Background="#161D2B" CornerRadius="6" Padding="3" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Content="🔄 DFA Máy tính (8 Trạng thái Điều khiển)"
+                                    Command="{Binding SwitchToDfaAutomataCommand}"
+                                    Height="32" FontWeight="SemiBold" FontSize="12">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModelCheckTabButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsDfaAutomataMode}" Value="True">
+                                                <Setter Property="Background" Value="#1f5ca9"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Grid.Column="1" Content="⚡ NFA Nhận dạng Số thực (Lexer Tokenizer)"
+                                    Command="{Binding SwitchToNfaAutomataCommand}"
+                                    Height="32" FontWeight="SemiBold" FontSize="12">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModelCheckTabButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNfaAutomataMode}" Value="True">
+                                                <Setter Property="Background" Value="#1f5ca9"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 2: Automata Canvas in ScrollViewer -->
+                    <Border Grid.Row="2" Background="#0C1019" BorderBrush="#1E273A" BorderThickness="1" CornerRadius="6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <Canvas Width="{Binding AutomataCanvasWidth}" Height="{Binding AutomataCanvasHeight}" Margin="20">
+                                <!-- Automata Edges (Transitions) -->
+                                <ItemsControl ItemsSource="{Binding AutomataEdges}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="0"/>
+                                            <Setter Property="Canvas.Top" Value="0"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Canvas>
+                                                <!-- Transition Arrow Line -->
+                                                <Line X1="{Binding X1}" Y1="{Binding Y1}" 
+                                                      X2="{Binding X2}" Y2="{Binding Y2}" 
+                                                      Stroke="{Binding StrokeColor}" StrokeThickness="{Binding StrokeThickness}"
+                                                      StrokeStartLineCap="Round"/>
+
+                                                <!-- Triangular Arrowhead -->
+                                                <Polygon Points="{Binding ArrowPoints}" 
+                                                         Fill="{Binding StrokeColor}"/>
+
+                                                <!-- Transition Label Badge -->
+                                                <Border Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}"
+                                                        Background="#0C1322" BorderBrush="#25354F" BorderThickness="1"
+                                                        CornerRadius="3" Padding="4,1.5">
+                                                    <TextBlock Text="{Binding Label}" 
+                                                               Foreground="#94A3B8" 
+                                                               FontSize="10" 
+                                                               FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Canvas>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Automata Nodes (States) -->
+                                <ItemsControl ItemsSource="{Binding AutomataNodes}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{Binding CanvasLeft}"/>
+                                            <Setter Property="Canvas.Top" Value="{Binding CanvasTop}"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Width="{Binding Diameter}" Height="{Binding Diameter}">
+                                                <!-- Outer Circle -->
+                                                <Border Width="{Binding Diameter}" Height="{Binding Diameter}"
+                                                        CornerRadius="41"
+                                                        Background="{Binding BackgroundColor}"
+                                                        BorderBrush="{Binding BorderColor}"
+                                                        BorderThickness="{Binding BorderThickness}">
+                                                    <Grid>
+                                                        <!-- Inner Border for Accepting / Final States (Double Circle) -->
+                                                        <Border Width="{Binding InnerDiameter}" Height="{Binding InnerDiameter}"
+                                                                CornerRadius="35"
+                                                                BorderBrush="{Binding BorderColor}"
+                                                                BorderThickness="1.5"
+                                                                Visibility="{Binding IsAccepting, Converter={StaticResource BoolToVisConverter}}"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                                        <!-- Node Labels inside Viewbox so text NEVER overflows or overlaps the circle -->
+                                                        <Viewbox MaxWidth="66" MaxHeight="54" Stretch="Uniform" StretchDirection="DownOnly" 
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2">
+                                                                <TextBlock Text="{Binding Title}" 
+                                                                           Foreground="#FFFFFF" 
+                                                                           FontWeight="Bold" 
+                                                                           FontSize="11" 
+                                                                           HorizontalAlignment="Center"
+                                                                           TextAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Subtitle}" 
+                                                                           Foreground="#CBD5E1" 
+                                                                           FontSize="9" 
+                                                                           HorizontalAlignment="Center"
+                                                                           TextAlignment="Center"
+                                                                           Margin="0,2,0,0"/>
+                                                            </StackPanel>
+                                                        </Viewbox>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Initial State Indicator (Arrow pointing in from left) -->
+                                                <Border Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-20,0,0,0"
+                                                        Visibility="{Binding IsStart, Converter={StaticResource BoolToVisConverter}}">
+                                                    <TextBlock Text="➔" FontSize="14" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Canvas>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Row 3: Footer Status & Formal Info -->
+                    <Border Grid.Row="3" Background="#161D2B" BorderBrush="#222C3E" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Mô tả mô hình hình thức (Formal Automaton Specification):" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="{Binding AutomataDescription}" FontSize="11.5" Foreground="{StaticResource TextPrimary}" TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <Border Grid.Column="1" Width="1" Background="#2E3B52" Margin="12,0"/>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="Trạng thái FSM:" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="{Binding AutomataActiveStateText}" FontSize="12" FontWeight="Bold" Foreground="#38BDF8"/>
                             </StackPanel>
                         </Grid>
                     </Border>

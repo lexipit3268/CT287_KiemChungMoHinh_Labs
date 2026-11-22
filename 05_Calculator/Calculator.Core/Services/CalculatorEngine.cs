@@ -13,6 +13,7 @@ public class CalculatorEngine
     public ModelCheckingService ModelChecker { get; }
     public AstVisualizerService AstVisualizer { get; }
     public ExpressionTreeBuilder TreeBuilder { get; }
+    public AutomataBuilderService AutomataBuilder { get; }
 
     public CalculatorMode Mode { get; set; } = CalculatorMode.Standard;
 
@@ -29,7 +30,8 @@ public class CalculatorEngine
         ProgrammerEngine? programmer = null,
         ModelCheckingService? modelChecker = null,
         AstVisualizerService? astVisualizer = null,
-        ExpressionTreeBuilder? treeBuilder = null)
+        ExpressionTreeBuilder? treeBuilder = null,
+        AutomataBuilderService? automataBuilder = null)
     {
         StateMachine = stateMachine ?? new CalculatorStateMachine();
         Memory = memory ?? new MemoryService();
@@ -38,6 +40,7 @@ public class CalculatorEngine
         ModelChecker = modelChecker ?? new ModelCheckingService();
         AstVisualizer = astVisualizer ?? new AstVisualizerService();
         TreeBuilder = treeBuilder ?? new ExpressionTreeBuilder();
+        AutomataBuilder = automataBuilder ?? new AutomataBuilderService();
     }
 
     public CalculationResult EvaluateAndRecord()

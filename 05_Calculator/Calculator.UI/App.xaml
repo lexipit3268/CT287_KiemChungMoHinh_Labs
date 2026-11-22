@@ -274,8 +274,9 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd"
                                 CornerRadius="5"
-                                Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                Background="{TemplateBinding Background}"
+                                Padding="0">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">

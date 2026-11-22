@@ -229,3 +229,80 @@ public class ExpressionTreeGraph
     public double CanvasWidth { get; set; } = 600;
     public double CanvasHeight { get; set; } = 400;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Automata Visualizer Models (DFA & NFA - CT287 Model Checking)
+// ─────────────────────────────────────────────────────────────────────────────
+
+public class AutomataNode
+{
+    public string Id { get; set; } = string.Empty;
+    public string StateKey { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public bool IsStart { get; set; }
+    public bool IsAccepting { get; set; }
+    public bool IsError { get; set; }
+    public bool IsActive { get; set; }
+
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Diameter { get; set; } = 82;
+
+    public double CanvasLeft => Math.Max(0, X - (Diameter / 2.0));
+    public double CanvasTop => Math.Max(0, Y - (Diameter / 2.0));
+    public double InnerDiameter => Math.Max(0, Diameter - 12);
+    public double InnerCanvasLeft => Math.Max(0, X - (InnerDiameter / 2.0));
+    public double InnerCanvasTop => Math.Max(0, Y - (InnerDiameter / 2.0));
+
+    // Outer circle colors
+    public string BackgroundColor => IsActive ? "#1f5ca9" : (IsError ? "#3b1116" : (IsAccepting ? "#0b2b1d" : "#131b2a"));
+    public string BorderColor => IsActive ? "#60a5fa" : (IsError ? "#ef4444" : (IsAccepting ? "#10b981" : "#334155"));
+    public double BorderThickness => IsActive ? 3.0 : 2.0;
+
+    // Glowing shadow for active node
+    public string ShadowColor => IsActive ? "#60a5fa" : "Transparent";
+}
+
+public class AutomataEdge
+{
+    public string FromId { get; set; } = string.Empty;
+    public string ToId { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public bool IsSelfLoop { get; set; }
+    public bool IsActive { get; set; }
+
+    public double X1 { get; set; }
+    public double Y1 { get; set; }
+    public double X2 { get; set; }
+    public double Y2 { get; set; }
+
+    // Label positioning
+    public double LabelX { get; set; }
+    public double LabelY { get; set; }
+
+    // Arrowhead coordinates (triangle)
+    public double ArrowTipX { get; set; }
+    public double ArrowTipY { get; set; }
+    public double ArrowLeftX { get; set; }
+    public double ArrowLeftY { get; set; }
+    public double ArrowRightX { get; set; }
+    public double ArrowRightY { get; set; }
+
+    public string ArrowPoints => $"{ArrowTipX},{ArrowTipY} {ArrowLeftX},{ArrowLeftY} {ArrowRightX},{ArrowRightY}";
+    public string StrokeColor => IsActive ? "#38bdf8" : "#475569";
+    public double StrokeThickness => IsActive ? 2.5 : 1.5;
+}
+
+public class AutomataGraph
+{
+    public string Title { get; set; } = string.Empty;
+    public string ModeBadge { get; set; } = "DFA";
+    public string FormalDefinition { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string ActiveStateName { get; set; } = string.Empty;
+    public List<AutomataNode> Nodes { get; set; } = new();
+    public List<AutomataEdge> Edges { get; set; } = new();
+    public double CanvasWidth { get; set; } = 860;
+    public double CanvasHeight { get; set; } = 480;
+}
