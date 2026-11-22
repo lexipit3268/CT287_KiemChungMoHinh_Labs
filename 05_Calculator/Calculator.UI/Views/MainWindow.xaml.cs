@@ -28,6 +28,7 @@ public partial class MainWindow : Window
             vm.IsMemoryDrawerOpen = false;
             vm.IsTrigFlyoutOpen = false;
             vm.IsFuncFlyoutOpen = false;
+            vm.IsTreeModalOpen = false;
         }
     }
 }

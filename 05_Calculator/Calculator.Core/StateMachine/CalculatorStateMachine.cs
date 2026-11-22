@@ -10,6 +10,8 @@ public class CalculatorStateMachine
     private readonly ExpressionEvaluator _evaluator;
     private readonly List<StateTransitionRecord> _transitionLog = new();
     private int _stepCounter = 0;
+    private string? _lastOperator = null;
+    private string? _lastOperand = null;
 
     public CalculatorState CurrentState { get; private set; } = CalculatorState.Start;
     public string Display { get; private set; } = "0";
@@ -38,6 +40,8 @@ public class CalculatorStateMachine
         ExpressionBuffer = string.Empty;
         OpenParenCount = 0;
         HasDecimalPoint = false;
+        _lastOperator = null;
+        _lastOperand = null;
     }
 
     public void LoadCalculation(string expression, string result)
@@ -68,6 +72,8 @@ public class CalculatorStateMachine
                 ExpressionBuffer = string.Empty;
                 CurrentState = CalculatorState.InputOperand;
                 HasDecimalPoint = false;
+                _lastOperator = null;
+                _lastOperand = null;
                 break;
 
             case CalculatorState.InputOperand:
@@ -164,6 +170,10 @@ public class CalculatorStateMachine
 
     public bool ProcessBinaryOperator(string op)
     {
+        // Clear previous repeated-equals memory on new operator input
+        _lastOperator = null;
+        _lastOperand = null;
+
         // Standardize visual symbols
         string normalizedOp = op switch
         {
@@ -528,6 +538,39 @@ public class CalculatorStateMachine
             return CalculationResult.Fail("Error state. Press C to reset.");
         }
 
+        // Repeated Equals Support (e.g. 5 + 2 = 7, then = -> 9, = -> 11)
+        if (CurrentState == CalculatorState.Evaluated)
+        {
+            if (!string.IsNullOrEmpty(_lastOperator) && !string.IsNullOrEmpty(_lastOperand))
+            {
+                string repeatExpr = $"{Display} {_lastOperator} {_lastOperand}";
+                var repeatRes = _evaluator.Evaluate(repeatExpr);
+
+                if (repeatRes.IsSuccess)
+                {
+                    Display = repeatRes.DisplayValue;
+                    ExpressionBuffer = $"{repeatExpr} =";
+                    CurrentState = CalculatorState.Evaluated;
+                    OpenParenCount = 0;
+                    HasDecimalPoint = Display.Contains('.');
+                    RecordTransition(fromState, CalculatorInputType.Equals, "=", CurrentState, $"Repeated calculation: {repeatExpr} = {Display}");
+                }
+                else
+                {
+                    Display = repeatRes.DisplayValue;
+                    CurrentState = CalculatorState.Error;
+                    RecordTransition(fromState, CalculatorInputType.Equals, "=", CurrentState, $"Repeated calculation failed: {repeatRes.ErrorMessage}");
+                }
+
+                return repeatRes;
+            }
+
+            // If no binary operator was saved (e.g. 5 = =), safely retain display
+            RecordTransition(fromState, CalculatorInputType.Equals, "=", CurrentState, $"Re-confirmed evaluation: {Display}");
+            double.TryParse(Display, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double keepVal);
+            return CalculationResult.Ok(keepVal);
+        }
+
         // Build complete expression
         var sb = new StringBuilder();
 
@@ -536,6 +579,15 @@ public class CalculatorStateMachine
             sb.Append(ExpressionBuffer);
             if (CurrentState == CalculatorState.InputOperand)
             {
+                _lastOperator = ExtractLastOperator(ExpressionBuffer);
+                _lastOperand = Display;
+                sb.Append(Display);
+            }
+            else if (CurrentState == CalculatorState.OperatorEntered)
+            {
+                // Auto-complete dangling operator (e.g. 5 + = -> 5 + 5 = 10)
+                _lastOperator = ExtractLastOperator(ExpressionBuffer);
+                _lastOperand = Display;
                 sb.Append(Display);
             }
         }
@@ -572,6 +624,39 @@ public class CalculatorStateMachine
         return result;
     }
 
+    private static string? ExtractLastOperator(string buffer)
+    {
+        if (string.IsNullOrWhiteSpace(buffer)) return null;
+        string[] parts = buffer.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = parts.Length - 1; i >= 0; i--)
+        {
+            if (parts[i] is "+" or "-" or "*" or "/" or "%" or "^")
+            {
+                return parts[i];
+            }
+        }
+        return null;
+    }
+
+    public void ClearTransitionLog()
+    {
+        _transitionLog.Clear();
+        _stepCounter = 0;
+        RecordTransition(CurrentState, CalculatorInputType.Clear, "LOG_CLEARED", CurrentState, "Transition log cleared");
+    }
+
+    public bool ReplayToStep(int stepIndex)
+    {
+        var record = _transitionLog.FirstOrDefault(r => r.StepIndex == stepIndex);
+        if (record == null) return false;
+
+        Display = record.DisplaySnapshot;
+        ExpressionBuffer = record.ExpressionSnapshot;
+        CurrentState = record.ToState;
+        HasDecimalPoint = Display.Contains('.');
+        return true;
+    }
+
     private void RecordTransition(CalculatorState from, CalculatorInputType inputType, string val, CalculatorState to, string desc)
     {
         _stepCounter++;
@@ -582,7 +667,10 @@ public class CalculatorStateMachine
             InputType = inputType,
             InputValue = val,
             ToState = to,
-            ActionDescription = desc
+            ActionDescription = desc,
+            DisplaySnapshot = Display,
+            ExpressionSnapshot = ExpressionBuffer,
+            Timestamp = DateTime.Now
         });
     }
 }

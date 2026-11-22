@@ -29,6 +29,13 @@ public class ExpressionEvaluator
 
         try
         {
+            // Strip any trailing '=' or whitespace before parsing
+            expression = expression.Trim().TrimEnd('=').Trim();
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return CalculationResult.Ok(0);
+            }
+
             var tokens = Tokenize(expression);
             if (tokens.Count == 0) return CalculationResult.Ok(0);
 
@@ -257,6 +264,13 @@ public class ExpressionEvaluator
             {
                 tokens.Add(new Token(TokenType.RightParen, ")"));
                 expectUnary = false;
+                i++;
+                continue;
+            }
+
+            // Safely skip any stray equals '=' character (e.g. from history replay or display buffer)
+            if (c == '=')
+            {
                 i++;
                 continue;
             }

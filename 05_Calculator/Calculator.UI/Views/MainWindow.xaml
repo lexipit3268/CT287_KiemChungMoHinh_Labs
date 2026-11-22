@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:Calculator.UI.ViewModels"
         mc:Ignorable="d"
-        Title="Calculator"
-        Height="620" Width="380" MinHeight="520" MinWidth="340"
+        Title="Calculator - CT287 Model Checking Lab"
+        Height="670" Width="400" MinHeight="560" MinWidth="360"
         Background="{StaticResource WindowBg}" Foreground="{StaticResource TextPrimary}"
         WindowStartupLocation="CenterScreen"
         KeyDown="Window_KeyDown">
@@ -19,9 +19,9 @@
         <!-- MAIN CONTAINER -->
         <Grid Margin="10,8,10,10">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Row 0: Top Header (☰ Standard FSM 🕒) -->
+                <RowDefinition Height="Auto"/> <!-- Row 0: Top Header (☰ Standard FSM 🔬 🕒) -->
                 <RowDefinition Height="Auto"/> <!-- Row 1: Scientific Options (DEG, F-E) -->
-                <RowDefinition Height="Auto"/> <!-- Row 2: Display Area -->
+                <RowDefinition Height="Auto"/> <!-- Row 2: Display Area & Programmer Bases -->
                 <RowDefinition Height="Auto"/> <!-- Row 3: Memory Bar (MC MR M+ M- MS M⌄) -->
                 <RowDefinition Height="Auto"/> <!-- Row 4: Scientific Dropdowns (Trig, Function) -->
                 <RowDefinition Height="*"/>    <!-- Row 5: Keypad Grid -->
@@ -31,12 +31,13 @@
             <Grid Grid.Row="0" Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/> <!-- Hamburger ☰ -->
-                    <ColumnDefinition Width="Auto"/> <!-- Title "Standard" / "Scientific" -->
-                    <ColumnDefinition Width="*"/>    <!-- Spacer / FSM Status -->
+                    <ColumnDefinition Width="Auto"/> <!-- Title "Standard" / "Scientific" / "Programmer" -->
+                    <ColumnDefinition Width="*"/>    <!-- FSM Status Badge (Clickable) -->
+                    <ColumnDefinition Width="Auto"/> <!-- Model Checking 🔬 -->
                     <ColumnDefinition Width="Auto"/> <!-- History 🕒 -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Hamburger Menu Button (Matches Image 1 & 2) -->
+                <!-- Hamburger Menu Button -->
                 <Button Grid.Column="0" 
                         Command="{Binding ToggleNavDrawerCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}"
@@ -57,17 +58,26 @@
                            Foreground="{StaticResource TextPrimary}"
                            VerticalAlignment="Center" Margin="8,0,8,0"/>
 
-                <!-- FSM State Badge (Model Checking CT287 Feature with #1f5ca9 Theme) -->
-                <Border Grid.Column="2" 
-                        Background="#0F1E36" BorderBrush="#1f5ca9" BorderThickness="1" 
-                        CornerRadius="10" Padding="8,2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding StateName}" 
-                               Foreground="{StaticResource TextAccent}" 
-                               FontSize="10" FontWeight="SemiBold" ToolTip="Automaton Finite State"/>
-                </Border>
+                <!-- Spacer -->
+                <Border Grid.Column="2"/>
+
+                <!-- Expression Tree Visualizer Button 🌳 -->
+                <Button Grid.Column="3" 
+                        Command="{Binding ToggleTreeModalCommand}"
+                        Style="{StaticResource HeaderIconButtonStyle}"
+                        ToolTip="Expression Tree Visualizer (Session 5 - Expression)"
+                        Margin="0,0,4,0">
+                    <Viewbox Width="17" Height="17" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="16">
+                            <!-- White Tree Icon -->
+                            <Path Data="M8,2 L8,14 M8,5 L4,9 M8,8 L12,12"
+                                  Stroke="#FFFFFF" StrokeThickness="1.6" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        </Canvas>
+                    </Viewbox>
+                </Button>
 
                 <!-- History Button (White Vector Clock Icon) -->
-                <Button Grid.Column="3" 
+                <Button Grid.Column="4" 
                         Command="{Binding ToggleHistoryCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}"
                         ToolTip="Calculation History">
@@ -82,7 +92,7 @@
                 </Button>
             </Grid>
 
-            <!-- ROW 1: SCIENTIFIC OPTIONS BAR (DEG / RAD & F-E) (Matches Image 3) -->
+            <!-- ROW 1: SCIENTIFIC OPTIONS BAR (DEG / RAD & F-E) -->
             <Grid Grid.Row="1" Margin="2,2,2,4"
                   Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
                 <StackPanel Orientation="Horizontal">
@@ -113,14 +123,15 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ROW 2: MAIN DISPLAY AREA (Matches Image 1 & 3) -->
+            <!-- ROW 2: MAIN DISPLAY AREA & PROGRAMMER BASES -->
             <Border Grid.Row="2" Background="{StaticResource DisplayBg}" 
                     BorderBrush="{StaticResource CardBorder}" BorderThickness="1"
                     CornerRadius="6" Padding="12,6" Margin="0,2,0,4">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="22"/>
-                        <RowDefinition Height="54"/>
+                        <RowDefinition Height="Auto"/> <!-- Formula / Expression line -->
+                        <RowDefinition Height="Auto"/> <!-- Main Result / Operand Display -->
+                        <RowDefinition Height="Auto"/> <!-- Programmer 4-Base Converter Rows -->
                     </Grid.RowDefinitions>
 
                     <!-- Formula / Expression line -->
@@ -128,10 +139,10 @@
                                Text="{Binding ExpressionDisplay}" 
                                Foreground="{StaticResource TextSecondary}" 
                                FontSize="13.5" HorizontalAlignment="Right" 
-                               TextTrimming="CharacterEllipsis"/>
+                               TextTrimming="CharacterEllipsis" MinHeight="20"/>
 
                     <!-- Main Result / Operand Display -->
-                    <DockPanel Grid.Row="1" LastChildFill="True">
+                    <DockPanel Grid.Row="1" LastChildFill="True" MinHeight="50">
                         <!-- Open Paren Depth Indicator -->
                         <TextBlock DockPanel.Dock="Left" 
                                    Text="{Binding OpenParenBadge}" 
@@ -145,15 +156,121 @@
                                        Foreground="{StaticResource TextPrimary}" 
                                        FontSize="{Binding DisplayFontSize}" FontWeight="Normal"
                                        TextAlignment="Right"
-                                       FontFamily="Segoe UI, Segoe UI Variable Display"
+                                       FontFamily="Segoe UI, Segoe UI Variable Display, Consolas"
                                        IsHitTestVisible="False"/>
                         </Viewbox>
                     </DockPanel>
+
+                    <!-- Programmer Mode 4-Base Rows (HEX, DEC, OCT, BIN) -->
+                    <StackPanel Grid.Row="2" Margin="0,6,0,2"
+                                Visibility="{Binding IsProgrammerMode, Converter={StaticResource BoolToVisConverter}}">
+                        <!-- HEX Row -->
+                        <Button Command="{Binding SelectBaseCommand}" CommandParameter="HEX" Style="{StaticResource ProgrammerBaseButtonStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="HEX" FontSize="11" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHexBase}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding HexDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- DEC Row -->
+                        <Button Command="{Binding SelectBaseCommand}" CommandParameter="DEC" Style="{StaticResource ProgrammerBaseButtonStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="DEC" FontSize="11" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDecBase}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding DecDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- OCT Row -->
+                        <Button Command="{Binding SelectBaseCommand}" CommandParameter="OCT" Style="{StaticResource ProgrammerBaseButtonStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="OCT" FontSize="11" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsOctBase}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding OctDisplay}" FontSize="12.5" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- BIN Row -->
+                        <Button Command="{Binding SelectBaseCommand}" CommandParameter="BIN" Style="{StaticResource ProgrammerBaseButtonStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="BIN" FontSize="11" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsBinBase}" Value="True">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextAccent}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding BinDisplay}" FontSize="11" FontFamily="Consolas, Segoe UI" HorizontalAlignment="Right" Foreground="{StaticResource TextPrimary}"/>
+                            </Grid>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- ROW 3: MEMORY BAR (MC, MR, M+, M-, MS, M⌄) (Matches Image 1 & 3) -->
+            <!-- ROW 3: MEMORY BAR (Visible in Standard & Scientific) -->
             <Grid Grid.Row="3" Margin="0,2,0,4">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsProgrammerMode}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -171,7 +288,7 @@
                 <Button Grid.Column="5" Content="M⌄" Command="{Binding ToggleMemoryDrawerCommand}" IsEnabled="{Binding HasMemory}" Style="{StaticResource MemoryButtonStyle}"/>
             </Grid>
 
-            <!-- ROW 4: SCIENTIFIC DROPDOWNS BAR (Trigonometry ⌄ & Function ⌄) (Matches Image 3) -->
+            <!-- ROW 4: SCIENTIFIC DROPDOWNS BAR (Trigonometry ⌄ & Function ⌄) -->
             <Grid Grid.Row="4" Margin="0,0,0,4"
                   Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
                 <Grid.ColumnDefinitions>
@@ -180,7 +297,6 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Trigonometry Dropdown Button -->
                 <Button Grid.Column="0" 
                         Command="{Binding ToggleTrigFlyoutCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}"
@@ -192,7 +308,6 @@
                     </StackPanel>
                 </Button>
 
-                <!-- Function Dropdown Button -->
                 <Button Grid.Column="1" 
                         Command="{Binding ToggleFuncFlyoutCommand}"
                         Style="{StaticResource HeaderIconButtonStyle}">
@@ -207,7 +322,7 @@
             <!-- ROW 5: KEYPAD GRIDS -->
             <Grid Grid.Row="5">
 
-                <!-- 1. STANDARD KEYPAD (4 COLUMNS x 6 ROWS) (Matches Image 1) -->
+                <!-- 1. STANDARD KEYPAD (4 COLUMNS x 6 ROWS) -->
                 <Grid Visibility="{Binding IsStandardMode, Converter={StaticResource BoolToVisConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -270,7 +385,7 @@
                     <Button Grid.Row="5" Grid.Column="3" Content="=" Command="{Binding EqualsCommand}" Style="{StaticResource EqualsTileStyle}"/>
                 </Grid>
 
-                <!-- 2. SCIENTIFIC KEYPAD (5 COLUMNS x 7 ROWS) (Matches Image 3) -->
+                <!-- 2. SCIENTIFIC KEYPAD (5 COLUMNS x 7 ROWS) -->
                 <Grid Visibility="{Binding IsScientificMode, Converter={StaticResource BoolToVisConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -335,9 +450,9 @@
                     <Button Grid.Row="1" Grid.Column="1" Content="¹/x" Command="{Binding ImmediateFunctionCommand}" CommandParameter="recip" Style="{StaticResource SciTileStyle}"/>
                     <Button Grid.Row="1" Grid.Column="2" Content="|x|" Command="{Binding ImmediateFunctionCommand}" CommandParameter="abs" Style="{StaticResource SciTileStyle}"/>
                     <Button Grid.Row="1" Grid.Column="3" Content="exp" Command="{Binding ImmediateFunctionCommand}" CommandParameter="exp" Style="{StaticResource SciTileStyle}"/>
-                    <Button Grid.Row="1" Grid.Column="4" Content="mod" Command="{Binding OperatorCommand}" CommandParameter="%" Style="{StaticResource OperatorTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="4" Content="mod" Command="{Binding OperatorCommand}" CommandParameter="%" Style="{StaticResource SciTileStyle}"/>
 
-                    <!-- Row 2: ²√x (or ∛x), (, ), n!, ÷ -->
+                    <!-- Row 2: ²√x (or ³√x), (, ), n!, ÷ -->
                     <Button Grid.Row="2" Grid.Column="0" Command="{Binding ImmediateFunctionCommand}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SciTileStyle}">
@@ -345,7 +460,7 @@
                                 <Setter Property="CommandParameter" Value="sqrt"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Is2ndActive}" Value="True">
-                                        <Setter Property="Content" Value="∛x"/>
+                                        <Setter Property="Content" Value="³√x"/>
                                         <Setter Property="CommandParameter" Value="cbrt"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -424,6 +539,88 @@
                     <Button Grid.Row="6" Grid.Column="3" Content="." Command="{Binding DecimalPointCommand}" Style="{StaticResource DigitTileStyle}"/>
                     <Button Grid.Row="6" Grid.Column="4" Content="=" Command="{Binding EqualsCommand}" Style="{StaticResource EqualsTileStyle}"/>
                 </Grid>
+
+                <!-- 3. PROGRAMMER KEYPAD (6 COLUMNS x 6 ROWS) -->
+                <Grid Visibility="{Binding IsProgrammerMode, Converter={StaticResource BoolToVisConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/> <!-- Row 0: WordSize, Lsh, Rsh, AND, OR -->
+                        <RowDefinition Height="*"/> <!-- Row 1: XOR, NOT, CE, C, ⌫, ÷ -->
+                        <RowDefinition Height="*"/> <!-- Row 2: A, B, 7, 8, 9, × -->
+                        <RowDefinition Height="*"/> <!-- Row 3: C, D, 4, 5, 6, − -->
+                        <RowDefinition Height="*"/> <!-- Row 4: E, F, 1, 2, 3, + -->
+                        <RowDefinition Height="*"/> <!-- Row 5: +/-, 0, Mod, = -->
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Row 0: WordSize Toggle (Col 0-1), Lsh, Rsh, AND, OR -->
+                    <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                            Command="{Binding SelectWordSizeCommand}" CommandParameter="{Binding WordSizeText}"
+                            Style="{StaticResource SciTileStyle}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding WordSizeText}" FontWeight="Bold" Foreground="{StaticResource TextAccent}"/>
+                            <TextBlock Text=" ⌄" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="2" Content="Lsh" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="LSH" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="3" Content="Rsh" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="RSH" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="4" Content="AND" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="AND" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="0" Grid.Column="5" Content="OR" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="OR" Style="{StaticResource SciTileStyle}"/>
+
+                    <!-- Row 1: XOR, NOT, CE, C, ⌫, ÷ -->
+                    <Button Grid.Row="1" Grid.Column="0" Content="XOR" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="XOR" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="NOT" Command="{Binding ProgrammerUnaryCommand}" CommandParameter="NOT" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="2" Content="CE" Command="{Binding ClearEntryCommand}" Style="{StaticResource ClearTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="3" Content="C" Command="{Binding ClearCommand}" Style="{StaticResource ClearTileStyle}"/>
+                    <Button Grid.Row="1" Grid.Column="4" Command="{Binding BackspaceCommand}" Style="{StaticResource ClearTileStyle}" ToolTip="Backspace">
+                        <Viewbox Width="18" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="18" Height="14">
+                                <Path Data="M6,1 L17,1 C17.5,1 18,1.5 18,2 L18,12 C18,12.5 17.5,13 17,13 L6,13 L1,7 Z" 
+                                      Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent" StrokeLineJoin="Round"/>
+                                <Line X1="8.5" Y1="4.5" X2="13.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Line X1="13.5" Y1="4.5" X2="8.5" Y2="9.5" Stroke="#FFFFFF" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Button>
+                    <Button Grid.Row="1" Grid.Column="5" Content="÷" Command="{Binding OperatorCommand}" CommandParameter="/" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 2: A, B, 7, 8, 9, × -->
+                    <Button Grid.Row="2" Grid.Column="0" Content="A" Command="{Binding ProgrammerKeyCommand}" CommandParameter="A" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="1" Content="B" Command="{Binding ProgrammerKeyCommand}" CommandParameter="B" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="2" Content="7" Command="{Binding DigitCommand}" CommandParameter="7" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="3" Content="8" Command="{Binding DigitCommand}" CommandParameter="8" IsEnabled="{Binding CanInputDecimalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="4" Content="9" Command="{Binding DigitCommand}" CommandParameter="9" IsEnabled="{Binding CanInputDecimalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="2" Grid.Column="5" Content="×" Command="{Binding OperatorCommand}" CommandParameter="*" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 3: C, D, 4, 5, 6, − -->
+                    <Button Grid.Row="3" Grid.Column="0" Content="C" Command="{Binding ProgrammerKeyCommand}" CommandParameter="C" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="1" Content="D" Command="{Binding ProgrammerKeyCommand}" CommandParameter="D" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="2" Content="4" Command="{Binding DigitCommand}" CommandParameter="4" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="3" Content="5" Command="{Binding DigitCommand}" CommandParameter="5" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="4" Content="6" Command="{Binding DigitCommand}" CommandParameter="6" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="3" Grid.Column="5" Content="−" Command="{Binding OperatorCommand}" CommandParameter="-" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 4: E, F, 1, 2, 3, + -->
+                    <Button Grid.Row="4" Grid.Column="0" Content="E" Command="{Binding ProgrammerKeyCommand}" CommandParameter="E" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="1" Content="F" Command="{Binding ProgrammerKeyCommand}" CommandParameter="F" IsEnabled="{Binding CanInputHexDigits}" Style="{StaticResource ProgrammerHexTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="2" Content="1" Command="{Binding DigitCommand}" CommandParameter="1" IsEnabled="{Binding CanInputBinaryDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="3" Content="2" Command="{Binding DigitCommand}" CommandParameter="2" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="4" Content="3" Command="{Binding DigitCommand}" CommandParameter="3" IsEnabled="{Binding CanInputOctalDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="4" Grid.Column="5" Content="+" Command="{Binding OperatorCommand}" CommandParameter="+" Style="{StaticResource OperatorTileStyle}"/>
+
+                    <!-- Row 5: +/-, 0, Mod, = -->
+                    <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Content="+/-" Command="{Binding ToggleSignCommand}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" Content="0" Command="{Binding DigitCommand}" CommandParameter="0" IsEnabled="{Binding CanInputBinaryDigits}" Style="{StaticResource DigitTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="4" Content="Mod" Command="{Binding ProgrammerOperatorCommand}" CommandParameter="MOD" Style="{StaticResource SciTileStyle}"/>
+                    <Button Grid.Row="5" Grid.Column="5" Content="=" Command="{Binding EqualsCommand}" Style="{StaticResource EqualsTileStyle}"/>
+                </Grid>
+
             </Grid>
         </Grid>
 
@@ -480,7 +677,7 @@
             </Grid>
         </Border>
 
-        <!-- NAVIGATION DRAWER OVERLAY (HAMBURGER MENU) (Matches Image 2) -->
+        <!-- NAVIGATION DRAWER OVERLAY (HAMBURGER MENU) -->
         <Grid Visibility="{Binding IsNavDrawerOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
             <!-- Dim Backdrop Background (click to close) -->
             <Border Background="#77000000" MouseDown="Backdrop_MouseDown"/>
@@ -595,68 +792,63 @@
                                 </Grid>
                             </Button>
 
-                            <!-- Other upcoming modes (grayed out as requested: "tạm thời chỉ cho 2 cái là standard và scientific") -->
-                            <StackPanel Opacity="0.45" Margin="0,4,0,0">
-                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
+                            <!-- Programmer Mode Option (Full Featured) -->
+                            <Button Command="{Binding SelectModeCommand}" CommandParameter="Programmer">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavDrawerButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsProgrammerMode}" Value="True">
+                                                <Setter Property="Background" Value="#172238"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="3"/>
                                         <ColumnDefinition Width="11"/>
                                         <ColumnDefinition Width="22"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <Canvas Width="16" Height="16">
-                                            <Rectangle Width="14" Height="14" Canvas.Left="1" Canvas.Top="1" RadiusX="2" RadiusY="2"
-                                                       Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
-                                            <Line X1="8" Y1="1" X2="8" Y2="15" Stroke="#FFFFFF" StrokeThickness="0.8"/>
-                                            <Line X1="1" Y1="8" X2="15" Y2="8" Stroke="#FFFFFF" StrokeThickness="0.8"/>
-                                            <Path Data="M3,12 Q8,2 13,8" Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Graphing" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                </Grid>
 
-                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
-                                        <ColumnDefinition Width="22"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <!-- Left Accent Indicator Bar (visible when Programmer is active) with #1f5ca9 -->
+                                    <Border Grid.Column="0" Width="3" Height="22" CornerRadius="1.5"
+                                            Background="{StaticResource AccentBg}" HorizontalAlignment="Left"
+                                            Visibility="{Binding IsProgrammerMode, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                    <!-- White Vector Programmer / Code Icon -->
+                                    <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <Canvas Width="16" Height="16">
                                             <Path Data="M4.5,4.5 L1.5,8 L4.5,11.5 M11.5,4.5 L14.5,8 L11.5,11.5 M9.5,3 L6.5,13"
-                                                  Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent" StrokeLineJoin="Round"/>
+                                                  Stroke="#FFFFFF" StrokeThickness="1.3" Fill="Transparent" StrokeLineJoin="Round"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Programmer" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <TextBlock Grid.Column="3" Text="Programmer" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </Grid>
+                            </Button>
 
-                                <Grid Height="36" Margin="0,1" HorizontalAlignment="Stretch">
+                            <!-- Section: CT287 Expression Tree Analysis -->
+                            <TextBlock Text="Expression Tree Analysis" Foreground="{StaticResource TextAccent}" FontSize="12" FontWeight="Bold" Margin="14,16,0,6"/>
+                            <Button Command="{Binding ToggleTreeModalCommand}" Style="{StaticResource NavDrawerButtonStyle}">
+                                <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="3"/>
                                         <ColumnDefinition Width="11"/>
                                         <ColumnDefinition Width="22"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <Viewbox Grid.Column="2" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <Canvas Width="16" Height="16">
-                                            <Rectangle Width="13" Height="12" Canvas.Left="1.5" Canvas.Top="2.5" RadiusX="2" RadiusY="2"
-                                                       Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
-                                            <Line X1="1.5" Y1="6" X2="14.5" Y2="6" Stroke="#FFFFFF" StrokeThickness="1.2"/>
-                                            <Line X1="5" Y1="1" X2="5" Y2="3.5" Stroke="#FFFFFF" StrokeThickness="1.2"/>
-                                            <Line X1="11" Y1="1" X2="11" Y2="3.5" Stroke="#FFFFFF" StrokeThickness="1.2"/>
+                                            <!-- Tree icon in sapphire blue -->
+                                            <Path Data="M8,2 L8,14 M8,5 L4,9 M8,8 L12,12"
+                                                  Stroke="#4ea2ff" StrokeThickness="1.5" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Date calculation" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                    <TextBlock Grid.Column="4" Text="Soon" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                    <TextBlock Grid.Column="3" Text="🌳 Parse Tree &amp; AST" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextAccent}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </Grid>
-                            </StackPanel>
+                            </Button>
 
                             <!-- Section: Converter (Upcoming) -->
                             <TextBlock Text="Converter" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="SemiBold" Margin="14,14,0,6"/>
@@ -693,21 +885,6 @@
                                     </Viewbox>
                                     <TextBlock Grid.Column="3" Text="Volume" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </Grid>
-                                <Grid Height="34" Margin="0,1" HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3"/>
-                                        <ColumnDefinition Width="11"/>
-                                        <ColumnDefinition Width="22"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Viewbox Grid.Column="2" Width="15" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <Canvas Width="16" Height="16">
-                                            <Path Data="M2,13 L13,2 L14.5,3.5 L3.5,14.5 Z M5,8 L6.5,9.5 M7.5,5.5 L9,7 M10,3 L11.5,4.5"
-                                                  Stroke="#FFFFFF" StrokeThickness="1.2" Fill="Transparent"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock Grid.Column="3" Text="Length" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
@@ -734,11 +911,10 @@
             </Border>
         </Grid>
 
-        <!-- HISTORY FLYOUT / DRAWER ON RIGHT (Matches Image 1 🕒) -->
-        <Grid Visibility="{Binding IsHistoryOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
+        <!-- HISTORY FLYOUT / DRAWER ON RIGHT -->
+        <Grid Visibility="{Binding IsHistoryOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="110">
             <Border Background="#66000000" MouseDown="Backdrop_MouseDown"/>
 
-            <!-- Expanded Width to 300 for full calculation cards -->
             <Border HorizontalAlignment="Right" Width="300"
                     Background="#141822" BorderBrush="#252F42" BorderThickness="1,0,0,0"
                     Padding="14,12">
@@ -749,7 +925,6 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header -->
                     <DockPanel Grid.Row="0" Margin="0,0,0,12">
                         <TextBlock Text="History" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
                         <Button DockPanel.Dock="Right" Content="✕" 
@@ -757,7 +932,6 @@
                                 Style="{StaticResource HeaderIconButtonStyle}" HorizontalAlignment="Right"/>
                     </DockPanel>
 
-                    <!-- History Items List with Full-Width Stretched Cards -->
                     <ListBox Grid.Row="1" ItemsSource="{Binding History}" 
                              Background="Transparent" BorderThickness="0"
                              HorizontalContentAlignment="Stretch"
@@ -789,30 +963,14 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- Top Formula Line -->
-                                        <TextBlock Grid.Row="0" 
-                                                   Text="{Binding Expression}" 
-                                                   Foreground="{StaticResource TextSecondary}" 
-                                                   FontSize="13" 
-                                                   TextAlignment="Right" 
-                                                   HorizontalAlignment="Stretch"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        <!-- Bottom Main Result Line -->
-                                        <TextBlock Grid.Row="1" 
-                                                   Text="{Binding Result}" 
-                                                   Foreground="{StaticResource TextPrimary}" 
-                                                   FontSize="22" 
-                                                   FontWeight="Bold" 
-                                                   TextAlignment="Right" 
-                                                   HorizontalAlignment="Stretch"
-                                                   Margin="0,4,0,0"/>
+                                        <TextBlock Grid.Row="0" Text="{Binding Expression}" Foreground="{StaticResource TextSecondary}" FontSize="13" TextAlignment="Right" HorizontalAlignment="Stretch" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Row="1" Text="{Binding Result}" Foreground="{StaticResource TextPrimary}" FontSize="22" FontWeight="Bold" TextAlignment="Right" HorizontalAlignment="Stretch" Margin="0,4,0,0"/>
                                     </Grid>
                                 </Button>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <!-- Bottom Clear History Button -->
                     <Button Grid.Row="2" Content="🗑  Clear All History" 
                             Command="{Binding ClearHistoryCommand}"
                             Style="{StaticResource TileButtonStyle}" Height="36" Margin="0,10,0,0" FontSize="12.5"/>
@@ -821,7 +979,7 @@
         </Grid>
 
         <!-- MEMORY DRAWER FLYOUT (M⌄) -->
-        <Grid Visibility="{Binding IsMemoryDrawerOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="100">
+        <Grid Visibility="{Binding IsMemoryDrawerOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="110">
             <Border Background="#66000000" MouseDown="Backdrop_MouseDown"/>
 
             <Border HorizontalAlignment="Right" Width="240"
@@ -845,6 +1003,172 @@
                         <TextBlock Text="Stored in Memory register" FontSize="12" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,4,0,12"/>
                         <Button Content="Clear Memory (MC)" Command="{Binding MemoryClearCommand}" Style="{StaticResource TileButtonStyle}" Height="32" Padding="12,0"/>
                     </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- EXPRESSION TREE & AST VISUALIZER MODAL (SESSION 5 - EXPRESSION) -->
+        <Grid Visibility="{Binding IsTreeModalOpen, Converter={StaticResource BoolToVisConverter}}" Panel.ZIndex="130">
+            <!-- Modal Backdrop (Click to dismiss) -->
+            <Border Background="#88000000" MouseDown="Backdrop_MouseDown"/>
+
+            <!-- Center Modal Window Container -->
+            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Margin="10,12"
+                    Background="#111622" BorderBrush="#252F42" BorderThickness="1.5"
+                    CornerRadius="10" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Row 0: Modal Header -->
+                        <RowDefinition Height="Auto"/> <!-- Row 1: Mode Switcher Tabs -->
+                        <RowDefinition Height="*"/>    <!-- Row 2: Tree Canvas in ScrollViewer -->
+                        <RowDefinition Height="Auto"/> <!-- Row 3: Footer Expression & Trace Info -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🌳" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <StackPanel>
+                                <TextBlock Text="Expression Tree Visualizer" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                                <TextBlock Text="CT287 Formal Model &amp; Parsing Analysis (Session 5 - Expression)" FontSize="11" Foreground="{StaticResource TextAccent}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button DockPanel.Dock="Right" Content="✕" 
+                                Command="{Binding CloseTreeModalCommand}"
+                                Style="{StaticResource HeaderIconButtonStyle}" 
+                                HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <!-- Row 1: Mode Switcher Tabs -->
+                    <Border Grid.Row="1" Background="#161D2B" CornerRadius="6" Padding="3" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Content="🌿 Parse Tree (E → T → F Grammars)"
+                                    Command="{Binding SwitchToParseTreeModeCommand}"
+                                    Height="32" FontWeight="SemiBold" FontSize="12">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModelCheckTabButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsParseTreeMode}" Value="True">
+                                                <Setter Property="Background" Value="#1f5ca9"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Grid.Column="1" Content="⚡ AST Tree (Compact Operator Tree)"
+                                    Command="{Binding SwitchToAstModeCommand}"
+                                    Height="32" FontWeight="SemiBold" FontSize="12">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource ModelCheckTabButtonStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAstMode}" Value="True">
+                                                <Setter Property="Background" Value="#1f5ca9"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 2: Tree Visualizer Canvas in ScrollViewer -->
+                    <Border Grid.Row="2" Background="#0C1019" BorderBrush="#1E273A" BorderThickness="1" CornerRadius="6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <Canvas Width="{Binding TreeCanvasWidth}" Height="{Binding TreeCanvasHeight}" Margin="20">
+                                <!-- Edges (Tree Branches) -->
+                                <ItemsControl ItemsSource="{Binding TreeEdges}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="0"/>
+                                            <Setter Property="Canvas.Top" Value="0"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Line X1="{Binding X1}" Y1="{Binding Y1}" 
+                                                  X2="{Binding X2}" Y2="{Binding Y2}" 
+                                                  Stroke="#2563EB" StrokeThickness="2"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Nodes (Tree Entities) -->
+                                <ItemsControl ItemsSource="{Binding TreeNodes}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{Binding CanvasLeft}"/>
+                                            <Setter Property="Canvas.Top" Value="{Binding CanvasTop}"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="{Binding Width}" Height="{Binding Height}"
+                                                    Background="{Binding BackgroundColor}"
+                                                    BorderBrush="{Binding BorderColor}"
+                                                    BorderThickness="1.5" CornerRadius="6"
+                                                    ToolTip="{Binding Label}">
+                                                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Label}" 
+                                                               Foreground="#FFFFFF" 
+                                                               FontWeight="Bold" 
+                                                               FontSize="12"
+                                                               HorizontalAlignment="Center" 
+                                                               VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Canvas>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Row 3: Footer Information (Expression, Result, RPN) -->
+                    <Border Grid.Row="3" Background="#161D2B" BorderBrush="#222C3E" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Expression:" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="{Binding TreeExpressionText}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+
+                            <Border Grid.Column="1" Width="1" Background="#2E3B52" Margin="10,0"/>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Result / RPN Trace:" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TreeResultText, StringFormat='Result: {0}'}" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,12,0"/>
+                                    <TextBlock Text="{Binding TreeRpnText, StringFormat='RPN: [{0}]'}" FontSize="11" Foreground="{StaticResource TextAccent}" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>

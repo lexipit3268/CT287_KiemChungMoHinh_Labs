@@ -195,4 +195,45 @@ public class StateMachineTests
         Assert.AreEqual(40, fsm.Display.Length);
         Assert.AreEqual(CalculatorState.InputOperand, fsm.CurrentState);
     }
+
+    [TestMethod]
+    public void TestRepeatedEquals_CalculatesConsecutively()
+    {
+        var fsm = new CalculatorStateMachine();
+        // 5 + 2 = -> 7
+        fsm.ProcessDigit('5');
+        fsm.ProcessBinaryOperator("+");
+        fsm.ProcessDigit('2');
+        var res1 = fsm.Evaluate();
+        Assert.IsTrue(res1.IsSuccess);
+        Assert.AreEqual("7", fsm.Display);
+        Assert.AreEqual(CalculatorState.Evaluated, fsm.CurrentState);
+
+        // Repeated '=' -> 7 + 2 = 9
+        var res2 = fsm.Evaluate();
+        Assert.IsTrue(res2.IsSuccess);
+        Assert.AreEqual("9", fsm.Display);
+        Assert.AreEqual(CalculatorState.Evaluated, fsm.CurrentState);
+
+        // Repeated '=' -> 9 + 2 = 11
+        var res3 = fsm.Evaluate();
+        Assert.IsTrue(res3.IsSuccess);
+        Assert.AreEqual("11", fsm.Display);
+        Assert.AreEqual(CalculatorState.Evaluated, fsm.CurrentState);
+    }
+
+    [TestMethod]
+    public void TestDanglingOperator_AutoCompletesOperand()
+    {
+        var fsm = new CalculatorStateMachine();
+        // 5 + = -> 5 + 5 = 10
+        fsm.ProcessDigit('5');
+        fsm.ProcessBinaryOperator("+");
+        Assert.AreEqual(CalculatorState.OperatorEntered, fsm.CurrentState);
+
+        var res = fsm.Evaluate();
+        Assert.IsTrue(res.IsSuccess);
+        Assert.AreEqual("10", fsm.Display);
+        Assert.AreEqual(CalculatorState.Evaluated, fsm.CurrentState);
+    }
 }

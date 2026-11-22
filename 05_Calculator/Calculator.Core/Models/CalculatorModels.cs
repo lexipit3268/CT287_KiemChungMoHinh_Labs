@@ -105,4 +105,127 @@ public class StateTransitionRecord
     public string InputValue { get; set; } = string.Empty;
     public Enums.CalculatorState ToState { get; set; }
     public string ActionDescription { get; set; } = string.Empty;
+    public string DisplaySnapshot { get; set; } = string.Empty;
+    public string ExpressionSnapshot { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+}
+
+public class AstNode
+{
+    public string Value { get; set; } = string.Empty;
+    public string NodeType { get; set; } = "Operand"; // "Operand", "BinaryOperator", "Function", "UnaryOperator"
+    public AstNode? Left { get; set; }
+    public AstNode? Right { get; set; }
+    public int Depth { get; set; }
+
+    public override string ToString() => Value;
+}
+
+public class ShuntingYardTraceStep
+{
+    public int Step { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
+    public string OperatorStack { get; set; } = string.Empty;
+    public string OutputQueue { get; set; } = string.Empty;
+}
+
+public class PropertyCheckResult
+{
+    public string PropertyId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Category { get; set; } = "Safety"; // Safety or Liveness
+    public string FormalFormula { get; set; } = string.Empty;
+    public bool IsSatisfied { get; set; }
+    public string Evidence { get; set; } = string.Empty;
+}
+
+public class ModelVerificationReport
+{
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public bool AllPropertiesSatisfied { get; set; }
+    public int TotalProperties { get; set; }
+    public int PassedProperties { get; set; }
+    public int TransitionsAudited { get; set; }
+    public List<PropertyCheckResult> Results { get; set; } = new();
+}
+
+public class ProgrammerValueRepresentation
+{
+    public ulong RawValue { get; set; }
+    public string Hex { get; set; } = "0";
+    public string Dec { get; set; } = "0";
+    public string Oct { get; set; } = "0";
+    public string Bin { get; set; } = "0";
+    public string FormattedBin { get; set; } = "0000 0000";
+}
+
+public enum ExpressionTreeNodeType
+{
+    Expression, // E
+    Term,       // T
+    Factor,     // F
+    Operator,   // +, -, *, /, ^
+    Number,     // 1, 2.5
+    Function,   // sin, cos, sqrt
+    Parenthesis // (, )
+}
+
+public class ExpressionTreeNode
+{
+    public string Id { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public ExpressionTreeNodeType Type { get; set; } = ExpressionTreeNodeType.Number;
+    public double? Value { get; set; }
+    public List<ExpressionTreeNode> Children { get; set; } = new();
+
+    // Coordinates for Canvas rendering
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Width { get; set; } = 46;
+    public double Height { get; set; } = 34;
+
+    public double CanvasLeft => Math.Max(0, X - (Width / 2.0));
+    public double CanvasTop => Math.Max(0, Y - (Height / 2.0));
+
+    public string BackgroundColor => Type switch
+    {
+        ExpressionTreeNodeType.Expression => "#0B3954",  // Deep Blue
+        ExpressionTreeNodeType.Term => "#087E8B",        // Teal
+        ExpressionTreeNodeType.Factor => "#3C1B58",      // Purple
+        ExpressionTreeNodeType.Operator => "#1f5ca9",    // Signature Sapphire Blue
+        ExpressionTreeNodeType.Number => "#1A2234",      // Dark Slate Card
+        ExpressionTreeNodeType.Function => "#065F46",    // Emerald
+        _ => "#1E293B"
+    };
+
+    public string BorderColor => Type switch
+    {
+        ExpressionTreeNodeType.Expression => "#38BDF8",
+        ExpressionTreeNodeType.Term => "#2DD4BF",
+        ExpressionTreeNodeType.Factor => "#C084FC",
+        ExpressionTreeNodeType.Operator => "#4ea2ff",
+        ExpressionTreeNodeType.Number => "#334155",
+        ExpressionTreeNodeType.Function => "#34D399",
+        _ => "#475569"
+    };
+}
+
+public class ExpressionTreeEdge
+{
+    public double X1 { get; set; }
+    public double Y1 { get; set; }
+    public double X2 { get; set; }
+    public double Y2 { get; set; }
+}
+
+public class ExpressionTreeGraph
+{
+    public string Expression { get; set; } = string.Empty;
+    public string Result { get; set; } = string.Empty;
+    public string Rpn { get; set; } = string.Empty;
+    public List<ExpressionTreeNode> Nodes { get; set; } = new();
+    public List<ExpressionTreeEdge> Edges { get; set; } = new();
+    public double CanvasWidth { get; set; } = 600;
+    public double CanvasHeight { get; set; } = 400;
 }

@@ -16,7 +16,8 @@ public class MainViewModel : ViewModelBase
     private string _stateName = "● S0: READY";
     private string _modeTitle = "Standard";
     private string _openParenBadge = string.Empty;
-    private bool _isScientificMode = false;
+    private CalculatorMode _currentMode = CalculatorMode.Standard;
+
     private bool _isNavDrawerOpen = false;
     private bool _isHistoryOpen = false;
     private bool _isMemoryDrawerOpen = false;
@@ -28,7 +29,55 @@ public class MainViewModel : ViewModelBase
     private string _memoryText = string.Empty;
     private bool _hasMemory = false;
 
-    // Properties
+    // Expression Parse Tree & AST Visualizer Modal (Session 5 - Expression)
+    private bool _isTreeModalOpen = false;
+    private bool _isParseTreeMode = false; // false = Compact AST, true = Full Parse Tree (E -> T -> F)
+    private double _treeCanvasWidth = 600;
+    private double _treeCanvasHeight = 400;
+    private string _treeExpressionText = string.Empty;
+    private string _treeResultText = string.Empty;
+    private string _treeRpnText = string.Empty;
+
+    // Programmer Mode values
+    private ProgrammerValueRepresentation _programmerValues = new();
+
+    // Mode properties
+    public CalculatorMode CurrentMode
+    {
+        get => _currentMode;
+        set
+        {
+            if (SetProperty(ref _currentMode, value))
+            {
+                _engine.Mode = value;
+                ModeTitle = value switch
+                {
+                    CalculatorMode.Standard => "Standard",
+                    CalculatorMode.Scientific => "Scientific",
+                    CalculatorMode.Programmer => "Programmer",
+                    _ => "Calculator"
+                };
+                OnPropertyChanged(nameof(IsStandardMode));
+                OnPropertyChanged(nameof(IsScientificMode));
+                OnPropertyChanged(nameof(IsProgrammerMode));
+
+                if (value == CalculatorMode.Programmer)
+                {
+                    SyncProgrammerDisplay();
+                }
+                else
+                {
+                    SyncFromState();
+                }
+            }
+        }
+    }
+
+    public bool IsStandardMode => CurrentMode == CalculatorMode.Standard;
+    public bool IsScientificMode => CurrentMode == CalculatorMode.Scientific;
+    public bool IsProgrammerMode => CurrentMode == CalculatorMode.Programmer;
+
+    // Display Properties
     public string Display
     {
         get => _display;
@@ -54,7 +103,13 @@ public class MainViewModel : ViewModelBase
             if (len == 15) return 29;
             if (len == 16) return 27;
             if (len == 17) return 25;
-            return 23;
+            if (len == 18) return 23;
+            if (len == 19) return 21;
+            if (len <= 21) return 19;
+            if (len <= 24) return 17;
+            if (len <= 28) return 15;
+            if (len <= 34) return 13.5;
+            return 12;
         }
     }
 
@@ -81,21 +136,6 @@ public class MainViewModel : ViewModelBase
         get => _openParenBadge;
         set => SetProperty(ref _openParenBadge, value);
     }
-
-    public bool IsScientificMode
-    {
-        get => _isScientificMode;
-        set
-        {
-            if (SetProperty(ref _isScientificMode, value))
-            {
-                ModeTitle = value ? "Scientific" : "Standard";
-                OnPropertyChanged(nameof(IsStandardMode));
-            }
-        }
-    }
-
-    public bool IsStandardMode => !IsScientificMode;
 
     public bool IsNavDrawerOpen
     {
@@ -157,6 +197,86 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _hasMemory, value);
     }
 
+    // Programmer Mode Properties
+    public ProgrammerValueRepresentation ProgrammerValues
+    {
+        get => _programmerValues;
+        private set => SetProperty(ref _programmerValues, value);
+    }
+
+    public NumberBase SelectedBase => _engine.Programmer.CurrentBase;
+    public BitWordSize SelectedWordSize => _engine.Programmer.CurrentWordSize;
+
+    public bool IsHexBase => SelectedBase == NumberBase.Hex;
+    public bool IsDecBase => SelectedBase == NumberBase.Dec;
+    public bool IsOctBase => SelectedBase == NumberBase.Oct;
+    public bool IsBinBase => SelectedBase == NumberBase.Bin;
+
+    public bool CanInputHexDigits => SelectedBase == NumberBase.Hex;
+    public bool CanInputDecimalDigits => SelectedBase == NumberBase.Hex || SelectedBase == NumberBase.Dec;
+    public bool CanInputOctalDigits => SelectedBase != NumberBase.Bin;
+    public bool CanInputBinaryDigits => true;
+
+    public string HexDisplay => ProgrammerValues.Hex;
+    public string DecDisplay => ProgrammerValues.Dec;
+    public string OctDisplay => ProgrammerValues.Oct;
+    public string BinDisplay => ProgrammerValues.FormattedBin;
+    public string WordSizeText => SelectedWordSize.ToString().ToUpperInvariant();
+
+    // Expression Tree Modal Properties
+    public bool IsTreeModalOpen
+    {
+        get => _isTreeModalOpen;
+        set => SetProperty(ref _isTreeModalOpen, value);
+    }
+
+    public bool IsParseTreeMode
+    {
+        get => _isParseTreeMode;
+        set
+        {
+            if (SetProperty(ref _isParseTreeMode, value))
+            {
+                OnPropertyChanged(nameof(IsAstMode));
+                RefreshTreeGraph();
+            }
+        }
+    }
+
+    public bool IsAstMode => !IsParseTreeMode;
+
+    public double TreeCanvasWidth
+    {
+        get => _treeCanvasWidth;
+        set => SetProperty(ref _treeCanvasWidth, value);
+    }
+
+    public double TreeCanvasHeight
+    {
+        get => _treeCanvasHeight;
+        set => SetProperty(ref _treeCanvasHeight, value);
+    }
+
+    public string TreeExpressionText
+    {
+        get => _treeExpressionText;
+        set => SetProperty(ref _treeExpressionText, value);
+    }
+
+    public string TreeResultText
+    {
+        get => _treeResultText;
+        set => SetProperty(ref _treeResultText, value);
+    }
+
+    public string TreeRpnText
+    {
+        get => _treeRpnText;
+        set => SetProperty(ref _treeRpnText, value);
+    }
+
+    public ObservableCollection<ExpressionTreeNode> TreeNodes { get; } = new();
+    public ObservableCollection<ExpressionTreeEdge> TreeEdges { get; } = new();
     public ObservableCollection<HistoryItem> History { get; } = new();
 
     // Commands
@@ -193,7 +313,22 @@ public class MainViewModel : ViewModelBase
     public ICommand RecallHistoryCommand { get; }
     public ICommand ClearHistoryCommand { get; }
 
-    // Parameterless constructor for WPF XAML loader
+    // Programmer Commands
+    public ICommand SelectBaseCommand { get; }
+    public ICommand SelectWordSizeCommand { get; }
+    public ICommand ProgrammerKeyCommand { get; }
+    public ICommand ProgrammerOperatorCommand { get; }
+    public ICommand ProgrammerUnaryCommand { get; }
+    public ICommand ToggleBitCommand { get; }
+
+    // Tree Visualizer Modal Commands
+    public ICommand ToggleTreeModalCommand { get; }
+    public ICommand CloseTreeModalCommand { get; }
+    public ICommand SwitchToAstModeCommand { get; }
+    public ICommand SwitchToParseTreeModeCommand { get; }
+    public ICommand RefreshTreeCommand { get; }
+
+    // Parameterless constructor for WPF XAML
     public MainViewModel() : this(new CalculatorEngine())
     {
     }
@@ -202,27 +337,47 @@ public class MainViewModel : ViewModelBase
     {
         _engine = engine ?? new CalculatorEngine();
 
+        // 1. Calculator Basic Commands
         DigitCommand = new RelayCommand(param =>
         {
             if (param is string s && s.Length > 0)
             {
-                _engine.StateMachine.ProcessDigit(s[0]);
-                SyncFromState();
+                if (IsProgrammerMode)
+                {
+                    _engine.Programmer.ProcessKey(s[0]);
+                    SyncProgrammerDisplay();
+                }
+                else
+                {
+                    _engine.StateMachine.ProcessDigit(s[0]);
+                    SyncFromState();
+                }
             }
         });
 
         DecimalPointCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.ProcessDecimalPoint();
-            SyncFromState();
+            if (!IsProgrammerMode)
+            {
+                _engine.StateMachine.ProcessDecimalPoint();
+                SyncFromState();
+            }
         });
 
         OperatorCommand = new RelayCommand(param =>
         {
             if (param is string op)
             {
-                _engine.StateMachine.ProcessBinaryOperator(op);
-                SyncFromState();
+                if (IsProgrammerMode)
+                {
+                    _engine.Programmer.ProcessOperator(op);
+                    SyncProgrammerDisplay();
+                }
+                else
+                {
+                    _engine.StateMachine.ProcessBinaryOperator(op);
+                    SyncFromState();
+                }
             }
         });
 
@@ -259,54 +414,99 @@ public class MainViewModel : ViewModelBase
 
         OpenParenCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.ProcessOpenParen();
-            SyncFromState();
+            if (!IsProgrammerMode)
+            {
+                _engine.StateMachine.ProcessOpenParen();
+                SyncFromState();
+            }
         });
 
         CloseParenCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.ProcessCloseParen();
-            SyncFromState();
+            if (!IsProgrammerMode)
+            {
+                _engine.StateMachine.ProcessCloseParen();
+                SyncFromState();
+            }
         });
 
         ToggleSignCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.ToggleSign();
-            SyncFromState();
+            if (IsProgrammerMode)
+            {
+                _engine.Programmer.ProcessUnary("NEG");
+                SyncProgrammerDisplay();
+            }
+            else
+            {
+                _engine.StateMachine.ToggleSign();
+                SyncFromState();
+            }
         });
 
         EqualsCommand = new RelayCommand(() =>
         {
-            var res = _engine.EvaluateAndRecord();
-            SyncFromState();
-            SyncHistory();
+            if (IsProgrammerMode)
+            {
+                _engine.Programmer.Evaluate();
+                SyncProgrammerDisplay();
+            }
+            else
+            {
+                var res = _engine.EvaluateAndRecord();
+                SyncFromState();
+                SyncHistory();
+            }
         });
 
         ClearCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.Reset();
-            SyncFromState();
+            if (IsProgrammerMode)
+            {
+                _engine.Programmer.Clear();
+                SyncProgrammerDisplay();
+            }
+            else
+            {
+                _engine.StateMachine.Reset();
+                SyncFromState();
+            }
         });
 
         ClearEntryCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.ClearEntry();
-            SyncFromState();
+            if (IsProgrammerMode)
+            {
+                _engine.Programmer.ClearEntry();
+                SyncProgrammerDisplay();
+            }
+            else
+            {
+                _engine.StateMachine.ClearEntry();
+                SyncFromState();
+            }
         });
 
         BackspaceCommand = new RelayCommand(() =>
         {
-            _engine.StateMachine.Backspace();
-            SyncFromState();
+            if (IsProgrammerMode)
+            {
+                _engine.Programmer.Backspace();
+                SyncProgrammerDisplay();
+            }
+            else
+            {
+                _engine.StateMachine.Backspace();
+                SyncFromState();
+            }
         });
 
-        // Toggle 2nd Functions
+        // 2. Toggles
         Toggle2ndCommand = new RelayCommand(() =>
         {
             Is2ndActive = !Is2ndActive;
         });
 
-        // Toggle F-E
         ToggleFECommand = new RelayCommand(() =>
         {
             IsFEActive = !IsFEActive;
@@ -318,7 +518,6 @@ public class MainViewModel : ViewModelBase
             }
         });
 
-        // Toggle Angle DEG / RAD
         ToggleAngleCommand = new RelayCommand(() =>
         {
             if (_engine.AngleMode == AngleUnit.Degree)
@@ -333,7 +532,6 @@ public class MainViewModel : ViewModelBase
             }
         });
 
-        // Navigation Drawer
         ToggleNavDrawerCommand = new RelayCommand(() =>
         {
             IsNavDrawerOpen = !IsNavDrawerOpen;
@@ -343,31 +541,31 @@ public class MainViewModel : ViewModelBase
         {
             if (param is string modeStr)
             {
-                if (modeStr == "Standard")
-                {
-                    IsScientificMode = false;
-                    _engine.Mode = CalculatorMode.Standard;
-                }
-                else if (modeStr == "Scientific")
-                {
-                    IsScientificMode = true;
-                    _engine.Mode = CalculatorMode.Scientific;
-                }
+                if (modeStr == "Standard") CurrentMode = CalculatorMode.Standard;
+                else if (modeStr == "Scientific") CurrentMode = CalculatorMode.Scientific;
+                else if (modeStr == "Programmer") CurrentMode = CalculatorMode.Programmer;
                 IsNavDrawerOpen = false;
             }
         });
 
-        // Panels and Flyouts
         ToggleHistoryCommand = new RelayCommand(() =>
         {
             IsHistoryOpen = !IsHistoryOpen;
-            if (IsHistoryOpen) IsMemoryDrawerOpen = false;
+            if (IsHistoryOpen)
+            {
+                IsMemoryDrawerOpen = false;
+                IsTreeModalOpen = false;
+            }
         });
 
         ToggleMemoryDrawerCommand = new RelayCommand(() =>
         {
             IsMemoryDrawerOpen = !IsMemoryDrawerOpen;
-            if (IsMemoryDrawerOpen) IsHistoryOpen = false;
+            if (IsMemoryDrawerOpen)
+            {
+                IsHistoryOpen = false;
+                IsTreeModalOpen = false;
+            }
         });
 
         ToggleTrigFlyoutCommand = new RelayCommand(() =>
@@ -439,8 +637,22 @@ public class MainViewModel : ViewModelBase
         {
             if (param is HistoryItem item)
             {
-                _engine.StateMachine.LoadCalculation(item.Expression, item.Result);
-                SyncFromState();
+                if (IsProgrammerMode)
+                {
+                    // In programmer mode, parse integer value safely
+                    if (double.TryParse(item.Result, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double dVal))
+                    {
+                        ulong uVal = (ulong)(long)dVal;
+                        _engine.Programmer.CurrentValue = uVal;
+                        _engine.Programmer.SetExpressionDisplay($"{item.Expression} =");
+                        SyncProgrammerDisplay();
+                    }
+                }
+                else
+                {
+                    _engine.StateMachine.LoadCalculation(item.Expression, item.Result);
+                    SyncFromState();
+                }
                 IsHistoryOpen = false;
             }
         });
@@ -451,13 +663,171 @@ public class MainViewModel : ViewModelBase
             SyncHistory();
         });
 
+        // 3. Programmer Mode Commands
+        SelectBaseCommand = new RelayCommand(param =>
+        {
+            if (param is string baseStr)
+            {
+                _engine.Programmer.CurrentBase = baseStr.ToUpperInvariant() switch
+                {
+                    "HEX" => NumberBase.Hex,
+                    "DEC" => NumberBase.Dec,
+                    "OCT" => NumberBase.Oct,
+                    "BIN" => NumberBase.Bin,
+                    _ => NumberBase.Dec
+                };
+                NotifyBaseChanged();
+                SyncProgrammerDisplay();
+            }
+        });
+
+        SelectWordSizeCommand = new RelayCommand(param =>
+        {
+            if (param is string sizeStr)
+            {
+                _engine.Programmer.CurrentWordSize = sizeStr.ToUpperInvariant() switch
+                {
+                    "BYTE" => BitWordSize.Byte,
+                    "WORD" => BitWordSize.Word,
+                    "DWORD" => BitWordSize.Dword,
+                    _ => BitWordSize.Qword
+                };
+                OnPropertyChanged(nameof(SelectedWordSize));
+                OnPropertyChanged(nameof(WordSizeText));
+                SyncProgrammerDisplay();
+            }
+        });
+
+        ProgrammerKeyCommand = new RelayCommand(param =>
+        {
+            if (param is string s && s.Length > 0)
+            {
+                _engine.Programmer.ProcessKey(s[0]);
+                SyncProgrammerDisplay();
+            }
+        });
+
+        ProgrammerOperatorCommand = new RelayCommand(param =>
+        {
+            if (param is string op)
+            {
+                _engine.Programmer.ProcessOperator(op);
+                SyncProgrammerDisplay();
+            }
+        });
+
+        ProgrammerUnaryCommand = new RelayCommand(param =>
+        {
+            if (param is string op)
+            {
+                _engine.Programmer.ProcessUnary(op);
+                SyncProgrammerDisplay();
+            }
+        });
+
+        ToggleBitCommand = new RelayCommand(param =>
+        {
+            if (param is int bitIdx)
+            {
+                _engine.Programmer.ToggleBit(bitIdx);
+                SyncProgrammerDisplay();
+            }
+            else if (param is string str && int.TryParse(str, out int parsed))
+            {
+                _engine.Programmer.ToggleBit(parsed);
+                SyncProgrammerDisplay();
+            }
+        });
+
+        // 4. Expression Tree Visualizer Modal Commands
+        ToggleTreeModalCommand = new RelayCommand(() =>
+        {
+            IsTreeModalOpen = !IsTreeModalOpen;
+            if (IsTreeModalOpen)
+            {
+                IsHistoryOpen = false;
+                IsMemoryDrawerOpen = false;
+                RefreshTreeGraph();
+            }
+        });
+
+        CloseTreeModalCommand = new RelayCommand(() =>
+        {
+            IsTreeModalOpen = false;
+        });
+
+        SwitchToAstModeCommand = new RelayCommand(() =>
+        {
+            IsParseTreeMode = false;
+        });
+
+        SwitchToParseTreeModeCommand = new RelayCommand(() =>
+        {
+            IsParseTreeMode = true;
+        });
+
+        RefreshTreeCommand = new RelayCommand(() =>
+        {
+            RefreshTreeGraph();
+        });
+
+        // Initialize state
         SyncFromState();
         SyncMemory();
+        SyncProgrammerDisplay();
+    }
+
+    public void RefreshTreeGraph()
+    {
+        string expr = !string.IsNullOrWhiteSpace(ExpressionDisplay)
+            ? ExpressionDisplay
+            : Display;
+
+        // If ends with '=', remove for parsing
+        if (expr.EndsWith('='))
+        {
+            expr = expr[..^1].Trim();
+        }
+
+        var graph = _engine.TreeBuilder.BuildGraph(expr, IsParseTreeMode);
+
+        TreeNodes.Clear();
+        foreach (var node in graph.Nodes)
+        {
+            TreeNodes.Add(node);
+        }
+
+        TreeEdges.Clear();
+        foreach (var edge in graph.Edges)
+        {
+            TreeEdges.Add(edge);
+        }
+
+        TreeCanvasWidth = graph.CanvasWidth;
+        TreeCanvasHeight = graph.CanvasHeight;
+        TreeExpressionText = graph.Expression;
+        TreeResultText = graph.Result;
+        TreeRpnText = graph.Rpn;
     }
 
     public void HandleKeyboardInput(Key key, ModifierKeys modifiers)
     {
         bool shift = (modifiers & ModifierKeys.Shift) != 0;
+
+        if (IsTreeModalOpen && key == Key.Escape)
+        {
+            IsTreeModalOpen = false;
+            return;
+        }
+
+        if (IsProgrammerMode && CanInputHexDigits)
+        {
+            if (key >= Key.A && key <= Key.F)
+            {
+                ProgrammerKeyCommand.Execute(key.ToString());
+                return;
+            }
+        }
 
         switch (key)
         {
@@ -578,6 +948,42 @@ public class MainViewModel : ViewModelBase
 
         int parenCount = _engine.StateMachine.OpenParenCount;
         OpenParenBadge = parenCount > 0 ? $"({parenCount})" : string.Empty;
+    }
+
+    private void SyncProgrammerDisplay()
+    {
+        ProgrammerValues = _engine.Programmer.GetRepresentation();
+        if (_engine.Programmer.HasError)
+        {
+            Display = _engine.Programmer.ErrorMessage ?? "Cannot divide by zero";
+            ExpressionDisplay = _engine.Programmer.ExpressionDisplay;
+            StateName = "● PROG: ERROR";
+        }
+        else
+        {
+            Display = _engine.Programmer.FormatForCurrentBase(_engine.Programmer.CurrentValue);
+            ExpressionDisplay = _engine.Programmer.ExpressionDisplay;
+            StateName = $"● PROG: {SelectedBase} ({WordSizeText})";
+        }
+
+        OnPropertyChanged(nameof(HexDisplay));
+        OnPropertyChanged(nameof(DecDisplay));
+        OnPropertyChanged(nameof(OctDisplay));
+        OnPropertyChanged(nameof(BinDisplay));
+        OnPropertyChanged(nameof(WordSizeText));
+    }
+
+    private void NotifyBaseChanged()
+    {
+        OnPropertyChanged(nameof(SelectedBase));
+        OnPropertyChanged(nameof(IsHexBase));
+        OnPropertyChanged(nameof(IsDecBase));
+        OnPropertyChanged(nameof(IsOctBase));
+        OnPropertyChanged(nameof(IsBinBase));
+        OnPropertyChanged(nameof(CanInputHexDigits));
+        OnPropertyChanged(nameof(CanInputDecimalDigits));
+        OnPropertyChanged(nameof(CanInputOctalDigits));
+        OnPropertyChanged(nameof(CanInputBinaryDigits));
     }
 
     private void SyncMemory()

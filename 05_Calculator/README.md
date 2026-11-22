@@ -1,19 +1,24 @@
-# ĐỒ ÁN NHỎ: MÁY TÍNH CÁ NHÂN (PERSONAL CALCULATOR)
+# ĐỒ ÁN NHỎ: MÁY TÍNH CÁ NHÂN & BỘ TRỰC QUAN HÓA CÂY BIỂU THỨC
 ### Môn học: Kiểm chứng mô hình (Model Checking - CT287)
+**Khoa Công nghệ Thông tin & Truyền thông — Trường Đại học Cần Thơ (CTU)**
 
 ---
 
 ## 1. Giới thiệu tổng quan
 
-Dự án **Máy tính cá nhân (Personal Calculator)** được phát triển bằng ngôn ngữ **C# (.NET 10)** trên nền tảng **WPF (Windows Presentation Foundation)** theo mô hình kiến trúc **MVVM (Model-View-ViewModel)**.
+Dự án **Máy tính cá nhân & Bộ trực quan hóa Cây Biểu Thức (Personal Calculator & Expression Tree Visualizer)** được phát triển bằng ngôn ngữ **C# (.NET 10)** trên nền tảng **WPF (Windows Presentation Foundation)** theo mô hình kiến trúc chuẩn **MVVM (Model-View-ViewModel)**.
 
-Dự án kết hợp 2 giải thuật cốt lõi nhằm giải quyết bài toán kiểm chứng tính đúng đắn:
-1. **Finite State Machine (FSM / Automaton):** Kiểm soát luồng tương tác nhập liệu và ngăn chặn trạng thái lỗi từ gốc (chống nhập 2 dấu chấm thập phân, chống toán tử liên tiếp không hợp lệ, kiểm soát số lượng ngoặc mở/đóng).
-2. **Expression Evaluator (Shunting-yard Algorithm & RPN):** Phân giải cú pháp và tính toán giá trị biểu thức toán học phức tạp, hỗ trợ độ ưu tiên toán tử, dấu ngoặc lồng nhau và các hàm toán học khoa học (lượng giác, logarit, căn bậc hai, giai thừa, lũy thừa).
+Dự án kết hợp chặt chẽ giữa ứng dụng thực tiễn với nền tảng lý thuyết môn **Kiểm chứng mô hình (CT287)** và kế thừa trực tiếp từ bài thực hành **Session 5 - Expression**:
+1. **Expression Tree Visualizer Modal (Kế thừa Session 5 - Expression):**
+   - Modal hiển thị cây biểu thức trực quan dạng 2D Canvas có thể cuộn linh hoạt.
+   - Hỗ trợ 2 chế độ cây: **🌿 Parse Tree (E $\to$ T $\to$ F)** (ngữ pháp V2 của môn học) và **⚡ AST Tree** (Cây toán tử rút gọn từ Shunting-Yard).
+   - Tự động đo đạc và bố trí tọa độ $(X, Y)$ các nút, vẽ các nhánh nối phân cấp rõ ràng.
+2. **Programmer Mode (Chế độ Lập trình viên):** Tính toán trên 4 hệ cơ số (HEX, DEC, OCT, BIN) với bảng chữ cái đầu vào động $\Sigma_{\text{base}}$, mặt nạ từ nhớ (Qword, Dword, Word, Byte) và các phép toán logic bitwise.
+3. **Giao diện chuẩn Windows 11 Modern UI:** Tông màu điểm nhấn Sapphire Blue **`#1f5ca9`**, hệ thống icon vector trắng thuần, drawer menu căn lề trái chuẩn xác, khung chọn History toàn chiều rộng và thuật toán tự động co giãn kích thước chữ khi nhập số lớn (+20 chữ số).
 
 ---
 
-## 2. Các chế độ hoạt động & Tính năng (Theo chuẩn Windows 11 Calculator)
+## 2. Các chế độ hoạt động (3 Chế độ Hoàn chỉnh)
 
 ### A. Chế độ Tiêu chuẩn (Standard Mode - Grid 4x6)
 - Bố cục phím chuẩn xác 1:1 giống Windows Calculator:
@@ -22,8 +27,8 @@ Dự án kết hợp 2 giải thuật cốt lõi nhằm giải quyết bài toá
   - **Hàng 3:** `7` | `8` | `9` | `×`
   - **Hàng 4:** `4` | `5` | `6` | `−`
   - **Hàng 5:** `1` | `2` | `3` | `+`
-  - **Hàng 6:** `+/-` | `0` | `.` | `=` (Màu Cyber Cyan ấn tượng)
-- **Hàng bộ nhớ (Memory Row):** `MC`, `MR`, `M+`, `M-`, `MS`, `M⌄` (tự động làm mờ khi chưa có giá trị lưu trữ).
+  - **Hàng 6:** `+/-` | `0` | `.` | `=` (Màu Sapphire Blue `#1f5ca9`)
+- **Nhập số lớn (Large Number Input):** Cho phép nhập chuỗi số lên đến 45 chữ số với thuật toán tự động thu nhỏ cỡ chữ (*Dynamic Font Downsizing*) kết hợp căn phải, không bị tràn hay cắt dòng.
 
 ### B. Chế độ Khoa học (Scientific Mode - Grid 5x7)
 - Bố cục phím khoa học 5 cột x 7 hàng:
@@ -39,118 +44,78 @@ Dự án kết hợp 2 giải thuật cốt lõi nhằm giải quyết bài toá
   - Nút chuyển đổi định dạng khoa học: **`F-E`** (Fixed-to-Exponential).
   - Menu thả xuống **`⊿ Trigonometry ⌄`**: $\sin, \cos, \tan, \sec, \csc, \cot, \arcsin, \arccos, \arctan$.
   - Menu thả xuống **`𝑓 Function ⌄`**: $|x|, \lfloor x \rfloor, \lceil x \rceil, \exp$.
-  - Phím **`2ⁿᵈ`**: Đổi các hàm lũy thừa và căn sang bậc 3 và cơ số 2.
 
-### C. Menu điều hướng (Navigation Drawer - Hamburger `☰`)
-- Bấm vào biểu tượng `☰` ở góc trên cùng bên trái để mở Drawer menu chuẩn:
-  - Tùy chọn **Standard** và **Scientific** với vạch sáng màu Cyber Neon Cyan chỉ báo chế độ đang kích hoạt.
-  - Các mục chế độ khác (Graphing, Programmer, Converter) được gắn nhãn sắp ra mắt.
-  - Nhấp vào khoảng mờ bên ngoài để đóng menu trượt.
-
-### D. Tính năng bổ trợ & Kiểm chứng mô hình (CT287)
-- **Bảng màu chủ đạo (Sapphire Blue `#1f5ca9`):** Phím `=` và các vạch chỉ báo trạng thái kích hoạt sử dụng tông xanh **#1f5ca9** sang trọng, chữ trắng đậm tương phản cao.
-- **Menu điều hướng căn đều bên trái (Left-aligned Drawer):** Toàn bộ icon và tên chế độ (`Standard`, `Scientific`, `Graphing`,...) được căn đều tăm tắp về bên trái dọc theo trục thẳng hàng.
-- **Khay lịch sử phục hồi phép tính (Full Calculation Recall):** Khi bấm vào bất kỳ mục lịch sử nào, toàn bộ biểu thức và kết quả cũ sẽ được khôi phục lên màn hình (`ExpressionDisplay` và `Display`), cho phép người dùng tiếp tục tính toán với phép tính đó.
-- **Huy hiệu FSM State (`● S0: READY`, `● S1: NUM`,...):** Hiển thị trực quan trạng thái của Automaton ngay trên đầu cửa sổ.
+### C. Chế độ Lập trình viên (Programmer Mode - Grid 6x6)
+- **Hiển thị đồng thời 4 cơ số:** HEX, DEC, OCT, BIN (nhấp vào bất kỳ hàng nào để đổi cơ số nhập liệu).
+- **Lọc bảng chữ cái đầu vào ($\Sigma_{\text{base}}$):** Vô hiệu hóa tự động các phím không thuộc cơ số hiện hành (ví dụ: ở BIN chỉ gõ được 0 và 1; ở HEX gõ được 0-9 và A-F).
+- **Mặt nạ từ nhớ (Word Size):** Hỗ trợ QWORD (64-bit), DWORD (32-bit), WORD (16-bit), BYTE (8-bit).
+- **Phép toán Bitwise:** `AND`, `OR`, `XOR`, `NOT`, `Lsh` (`<<`), `Rsh` (`>>`), `Mod`.
 
 ---
 
-## 3. Kiến trúc Hệ thống
+## 3. Bộ Trực quan hóa Cây Biểu thức (Expression Tree Visualizer Modal 🌳)
+
+Nhấp vào nút **`🌳`** trên thanh tiêu đề hoặc chọn mục **`🌳 Parse Tree & AST`** trong Drawer Menu để mở Modal:
+
+1. **🌿 Parse Tree Mode (Cây ngữ pháp E $\to$ T $\to$ F):**
+   - Phân giải biểu thức theo cấu trúc ngữ pháp đệ quy V2 từ Session 5:
+     $$E \to T ((+ \mid -) T)^*$$
+     $$T \to F ((* \mid /) F)^*$$
+     $$F \to (E) \mid \text{id}$$
+   - Hiển thị đầy đủ cây phát sinh cú pháp với các nút không kết thúc ($E, T, F$) và nút kết thúc (toán tử, số).
+2. **⚡ AST Tree Mode (Cây toán tử rút gọn):**
+   - Dựng cây cú pháp trừu tượng gọn nhẹ từ kết quả thuật toán Shunting-Yard.
+   - Thể hiện rõ thứ tự ưu tiên của các phép toán nhân/chia trước, cộng/trừ sau và xử lý dấu ngoặc.
+3. **Thanh thông tin Footer:**
+   - Chuỗi biểu thức gốc (`Expression`).
+   - Kết quả tính toán (`Result`).
+   - Chuỗi ký pháp Ba Lan nghịch đảo (`RPN Trace`).
+
+---
+
+## 4. Kiến trúc Thư mục
 
 ```
 05_Calculator/
 ├── Calculator.slnx                       # File Solution (.NET 10)
-├── start.ps1                             # Script khởi chạy ứng dụng 1-click
+├── start.bat & start.ps1                 # Script khởi chạy 1-click
+├── README.md                             # Tài liệu tổng quan
+├── BAO_CAO_DU_AN_CALCULATOR_CT287.md     # Báo cáo học thuật toàn diện chuẩn CTU
 ├── Calculator.Core/                      # Thư viện Logic độc lập (100% C# thuần)
-│   ├── Enums/
-│   │   └── CalculatorEnums.cs            # CalculatorState, CalculatorMode, AngleUnit, CalculatorInputType
-│   ├── Models/
-│   │   └── CalculatorModels.cs           # Token, CalculationResult, HistoryItem, StateTransitionRecord
-│   ├── StateMachine/
-│   │   └── CalculatorStateMachine.cs     # Bộ điều khiển chuyển trạng thái hữu hạn (FSM)
-│   ├── Parser/
-│   │   └── ExpressionEvaluator.cs        # Shunting-yard (Infix -> RPN) & Bộ lượng giá toán học
+│   ├── Enums/                            # CalculatorState, CalculatorMode, NumberBase, BitWordSize,...
+│   ├── Models/                           # ExpressionTreeNode, ExpressionTreeEdge, ExpressionTreeGraph,...
+│   ├── StateMachine/                     # CalculatorStateMachine (FSM phân tích ngữ pháp & trạng thái)
+│   ├── Parser/                           # ExpressionEvaluator (Tokenizer, Shunting-yard, AST, RPN)
 │   └── Services/
+│       ├── ExpressionTreeBuilder.cs      # Xây dựng Parse Tree (E->T->F) và AST với tọa độ 2D
+│       ├── ProgrammerEngine.cs           # Xử lý 4 cơ số, mặt nạ bit và phép toán bitwise
 │       ├── MemoryService.cs              # Quản lý bộ nhớ MC, MR, M+, M-, MS
-│       ├── HistoryService.cs             # Quản lý danh sách lịch sử tính toán
-│       └── CalculatorEngine.cs           # Facade điều phối toàn bộ hệ thống
+│       ├── HistoryService.cs             # Quản lý lịch sử và phục hồi phép tính
+│       └── CalculatorEngine.cs           # Facade kết nối toàn bộ hệ thống
 ├── Calculator.UI/                        # Giao diện người dùng WPF (.NET 10 + MVVM)
-│   ├── Common/
-│   │   ├── RelayCommand.cs               # Cài đặt ICommand chuẩn MVVM
-│   │   └── ViewModelBase.cs              # Cài đặt INotifyPropertyChanged
-│   ├── ViewModels/
-│   │   └── MainViewModel.cs              # ViewModel điều khiển giao diện & phím tắt
-│   ├── Views/
-│   │   ├── MainWindow.xaml               # Thiết kế XAML hiện đại (Dark theme Fluent)
-│   │   └── MainWindow.xaml.cs            # Code-behind bắt sự kiện bàn phím
-│   └── App.xaml & App.xaml.cs            # Cấu hình Style, Resource, Start window
-└── Calculator.Tests/                     # Bộ kiểm thử tự động (MSTest)
-    ├── StateMachineTests.cs              # Kiểm thử chuyển trạng thái & kiểm soát lỗi nhập
-    ├── ExpressionEvaluatorTests.cs       # Kiểm thử độ ưu tiên toán tử, ngoặc, hàm khoa học
-    ├── MemoryAndHistoryTests.cs          # Kiểm thử bộ nhớ & lịch sử
-    └── CalculatorEngineTests.cs          # Kiểm thử tích hợp chu trình tính toán
+│   ├── ViewModels/MainViewModel.cs       # ViewModel điều khiển Standard, Scientific, Programmer & Tree Modal
+│   ├── Views/MainWindow.xaml             # Giao diện Dark theme, Vector icons trắng, 3 bàn phím & Tree Modal
+│   └── App.xaml                          # Bảng màu #1f5ca9, Styles, Templates
+└── Calculator.Tests/                     # Bộ kiểm thử tự động MSTest (44/44 PASSED)
+    ├── ExpressionTreeBuilderTests.cs     # Kiểm thử dựng Parse Tree, AST, tọa độ Canvas, RPN
+    ├── StateMachineTests.cs              # Kiểm thử FSM, Repeated '=', Dangling Op, chống 2 chấm, cân bằng ngoặc, số lớn 40+ chữ số
+    ├── ProgrammerEngineTests.cs          # Kiểm thử chuyển cơ số, chia 0, bảng chữ cái động, bitwise, mask
+    ├── ExpressionEvaluatorTests.cs       # Kiểm thử ưu tiên toán tử, ngoặc lồng nhau, hàm khoa học
+    ├── MemoryAndHistoryTests.cs          # Kiểm thử bộ nhớ và lịch sử
+    └── CalculatorEngineTests.cs          # Kiểm thử tích hợp toàn diện chu trình tính toán
 ```
 
 ---
 
-## 4. Mô hình Trạng thái Hữu hạn (Finite State Machine - FSM)
+## 5. Hướng dẫn Khởi chạy và Kiểm thử
 
-Máy trạng thái được thiết kế với các trạng thái chính:
-
-```
-[S0: Start] ------------ (Nhập chữ số) -----------> [S1: InputOperand]
-     |                                                      |
-     |                                                  (Toán tử)
-     |                                                      v
-     v                                              [S2: OperatorEntered]
-(Mở ngoặc '(')                                              |
-     |                                                  (Nhập số)
-     v                                                      v
-[S3: OpenParen] -------- (Nhập số) --------------> [S1: InputOperand]
-                                                            |
-                                                        (Đóng ngoặc ')')
-                                                            v
-                                                    [S4: CloseParen]
-                                                            |
-                                                         (Dấu '=')
-                                                            v
-                                                    [S6: Evaluated]
-                                                            |
-                                                       (Chia cho 0)
-                                                            v
-                                                    [S7: Error State]
-```
-
-### Quy tắc kiểm chứng:
-1. **Chống 2 dấu chấm:** Khi đang ở `S1` và đã có dấu chấm, mọi lần bấm `.` tiếp theo đều bị chặn.
-2. **Thay thế toán tử:** Khi liên tiếp bấm các toán tử (ví dụ `+` rồi bấm ngay `*`), hệ thống tự động thay thế toán tử cũ bằng toán tử mới, không gây lỗi cú pháp.
-3. **Cân bằng dấu ngoặc:** Phím `)` chỉ cho phép bấm khi số ngoặc mở `OpenParenCount > 0`. Khi bấm `=`, hệ thống tự động bổ sung đủ các dấu ngoặc đóng còn thiếu.
-
----
-
-## 5. Hướng dẫn Chạy ứng dụng & Kiểm thử
-
-### Cách 1: Khởi chạy ứng dụng máy tính (WPF)
-
-Mở PowerShell tại thư mục `05_Calculator`:
-
+### Khởi chạy ứng dụng:
+Nhấp đúp vào **`start.bat`** hoặc chạy lệnh PowerShell:
 ```powershell
 .\start.ps1
 ```
 
-Hoặc dùng lệnh dotnet:
-
+### Chạy toàn bộ 44 Kiểm thử tự động (Unit Tests):
 ```powershell
-dotnet run --project .\Calculator.UI\Calculator.UI.csproj
+dotnet test .\05_Calculator\Calculator.Tests\Calculator.Tests.csproj
 ```
-
-### Cách 2: Chạy bộ Kiểm thử tự động (Unit Tests)
-
-```powershell
-dotnet test .\Calculator.Tests\Calculator.Tests.csproj
-```
-
-**Kết quả kiểm thử:**
-- **Tổng số test cases:** 23/23 tests.
-- **Tỷ lệ đạt:** 100% Passed.
-- Bao phủ đầy đủ: State transitions, Operator precedence, Left-associativity, Exponentiation right-associativity, Trigonometry (Deg & Rad), Division by zero, Memory & History.
