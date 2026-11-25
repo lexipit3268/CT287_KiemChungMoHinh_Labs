@@ -152,12 +152,12 @@ body {
     width: 100vw;
     height: 100%;
     flex-shrink: 0;
-    padding: 32px 50px;
+    padding: 22px 44px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: safe center;
     opacity: 0.35;
     transition: opacity 0.3s ease;
     background-color: var(--bg-page);
@@ -167,12 +167,139 @@ body {
     opacity: 1;
 }
 
-/* Force all child blocks in slides to center horizontally up to 1080px */
+/* Force all child blocks in slides to center horizontally up to 1140px */
 .slide > * {
     width: 100%;
-    max-width: 1080px;
+    max-width: 1140px;
     margin-left: auto;
     margin-right: auto;
+}
+
+/* Code Location Reference Bar */
+.code-ref {
+    margin-top: 14px;
+    padding: 8px 14px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--primary-blue);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.code-ref strong {
+    color: var(--primary-blue);
+}
+
+/* Inline Code Tag */
+code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background-color: var(--bg-code);
+    color: var(--primary-blue);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+/* Pipeline / Flow Strip */
+.flow-strip {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.flow-step {
+    background-color: #FFFFFF;
+    border: 1px solid var(--primary-blue);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    text-align: center;
+    flex: 1;
+    min-width: 130px;
+}
+
+.flow-step span {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.flow-arrow {
+    color: var(--primary-blue);
+    font-weight: 800;
+    font-size: 15px;
+}
+
+/* Agenda Strip on Slide 1 */
+.agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 960px;
+    margin-top: 16px;
+}
+
+.agenda-item {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-top: 2px solid var(--primary-blue);
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.agenda-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+.agenda-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 3px;
+    line-height: 1.35;
+}
+
+/* Compact Table inside Cards */
+.mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 6px;
+}
+
+.mini-table th, .mini-table td {
+    padding: 6px 9px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.mini-table th {
+    background-color: #F1F5F9;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.mini-table td {
+    color: var(--text-secondary);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
